@@ -38,7 +38,7 @@ PrivateData = @{
 
         Tags = 'AI','Claude','GPT','Gemini','Anthropic','OpenAI','Google','LLM','Streaming','Prompt'
 
-        LicenseUri = 'https://github.com/yotsuda/PromptAI/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/yotsuda/PromptAI/blob/master/LICENSE'
 
         ProjectUri = 'https://github.com/yotsuda/PromptAI'
 
