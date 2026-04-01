@@ -1,6 +1,6 @@
 # PromptAI
 
-Call AI models from PowerShell with real-time streaming.
+Call AI models from PowerShell with real-time streaming. Works with [PowerShell.MCP](https://github.com/yotsuda/PowerShell.MCP) for AI-to-AI communication.
 
 ```powershell
 Invoke-Claude "Explain PowerShell pipelines in one paragraph."
