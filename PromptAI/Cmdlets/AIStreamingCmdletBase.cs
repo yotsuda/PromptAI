@@ -80,7 +80,6 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
         using var reader = new StreamReader(stream);
 
         var result = new StringBuilder();
-        bool wroteAny = false;
 
         while (reader.ReadLine() is { } line)
         {
@@ -100,7 +99,6 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
                 {
                     result.Append(chunk);
                     Host.UI.Write(chunk);
-                    wroteAny = true;
                 }
             }
             catch (JsonException)
