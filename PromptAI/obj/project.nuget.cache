@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "dgSpecHash": "es8yPbynO+w=",
+  "success": true,
+  "projectFilePath": "C:\\MyProj\\PromptAI\\PromptAI\\PromptAI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.applicationinsights\\2.21.0\\microsoft.applicationinsights.2.21.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.management.infrastructure\\2.0.0\\microsoft.management.infrastructure.2.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.management.infrastructure.runtime.unix\\2.0.0\\microsoft.management.infrastructure.runtime.unix.2.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.management.infrastructure.runtime.win\\2.0.0\\microsoft.management.infrastructure.runtime.win.2.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.powershell.coreclr.eventing\\7.2.15\\microsoft.powershell.coreclr.eventing.7.2.15.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.powershell.native\\7.2.1\\microsoft.powershell.native.7.2.1.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.win32.registry.accesscontrol\\6.0.0\\microsoft.win32.registry.accesscontrol.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.codedom\\6.0.0\\system.codedom.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.configuration.configurationmanager\\6.0.1\\system.configuration.configurationmanager.6.0.1.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.diagnostics.diagnosticsource\\5.0.1\\system.diagnostics.diagnosticsource.5.0.1.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.diagnostics.eventlog\\6.0.0\\system.diagnostics.eventlog.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.directoryservices\\6.0.1\\system.directoryservices.6.0.1.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.formats.asn1\\6.0.0\\system.formats.asn1.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.management\\6.0.2\\system.management.6.0.2.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.management.automation\\7.2.15\\system.management.automation.7.2.15.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.security.accesscontrol\\6.0.0\\system.security.accesscontrol.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.security.cryptography.pkcs\\6.0.4\\system.security.cryptography.pkcs.6.0.4.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.security.cryptography.protecteddata\\6.0.0\\system.security.cryptography.protecteddata.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.security.permissions\\6.0.0\\system.security.permissions.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.21\\microsoft.netcore.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.21\\microsoft.windowsdesktop.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.21\\microsoft.aspnetcore.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.10\\microsoft.netcore.app.ref.9.0.10.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.10\\microsoft.windowsdesktop.app.ref.9.0.10.nupkg.sha512",
+    "C:\\Users\\yoshifumi.tsuda\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.10\\microsoft.aspnetcore.app.ref.9.0.10.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/Autopilot for Everyone-Packages/nuget/v3/index.json.",
+      "projectPath": "C:\\MyProj\\PromptAI\\PromptAI\\PromptAI.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\MyProj\\PromptAI\\PromptAI\\PromptAI.csproj",
+      "targetGraphs": []
+    }
+  ]
+}
