@@ -20,20 +20,13 @@ Requires PowerShell 7.4+.
 
 ## Setup
 
-Set API keys as environment variables:
+Set API keys for the providers you use. Restart PowerShell after running `setx`.
 
 ```powershell
-# Anthropic (for Invoke-Claude)
-[Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk-ant-...', 'User')
-
-# OpenAI (for Invoke-GPT)
-[Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'sk-...', 'User')
-
-# Google (for Invoke-Gemini)
-[Environment]::SetEnvironmentVariable('GEMINI_API_KEY', '...', 'User')
+setx ANTHROPIC_API_KEY "sk-ant-..."   # for Invoke-Claude
+setx OPENAI_API_KEY "sk-..."          # for Invoke-GPT
+setx GEMINI_API_KEY "..."             # for Invoke-Gemini
 ```
-
-You only need the keys for the providers you use.
 
 ## Cmdlets
 
