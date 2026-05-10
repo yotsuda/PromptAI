@@ -40,6 +40,10 @@ public class GetDeepSeekBalanceCmdlet : PSCmdlet
         foreach (var entry in infos.EnumerateArray())
         {
             var obj = new PSObject();
+            // Custom TypeName so the format engine picks the dedicated TableControl
+            // in PromptAI.Format.ps1xml. IsAvailable is excluded from the default
+            // view (always True in practice); Format-List exposes it.
+            obj.TypeNames.Insert(0, "PromptAI.Cmdlets.DeepSeekBalance");
             obj.Properties.Add(new PSNoteProperty("Currency",        entry.GetProperty("currency").GetString()));
             obj.Properties.Add(new PSNoteProperty("TotalBalance",    decimal.Parse(entry.GetProperty("total_balance").GetString()!)));
             obj.Properties.Add(new PSNoteProperty("GrantedBalance",  decimal.Parse(entry.GetProperty("granted_balance").GetString()!)));

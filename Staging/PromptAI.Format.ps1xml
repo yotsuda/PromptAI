@@ -18,5 +18,40 @@
         </CustomEntries>
       </CustomControl>
     </View>
+    <View>
+      <Name>DeepSeekBalance</Name>
+      <ViewSelectedBy>
+        <TypeName>PromptAI.Cmdlets.DeepSeekBalance</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Currency</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>TotalBalance</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>GrantedBalance</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>ToppedUpBalance</Label>
+            <Alignment>Right</Alignment>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Currency</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>TotalBalance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>GrantedBalance</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>ToppedUpBalance</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>
