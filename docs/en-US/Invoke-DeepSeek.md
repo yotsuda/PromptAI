@@ -1,26 +1,26 @@
 ---
 document type: cmdlet
-external help file: PowerShell.MCP.dll-Help.xml
-HelpUri: ''
+external help file: PromptAI.dll-Help.xml
+HelpUri: https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md
 Locale: en-US
-Module Name: PowerShell.MCP
-ms.date: 04/01/2026
+Module Name: PromptAI
+ms.date: 05/10/2026
 PlatyPS schema version: 2024-05-01
-title: Invoke-Claude
+title: Invoke-DeepSeek
 ---
 
-# Invoke-Claude
+# Invoke-DeepSeek
 
 ## SYNOPSIS
 
-Sends a prompt to the Anthropic Claude API and returns the response with real-time streaming.
+Sends a prompt to the DeepSeek API and returns the response with real-time streaming.
 
 ## SYNTAX
 
 ### __AllParameterSets
 
 ```
-Invoke-Claude [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
+Invoke-DeepSeek [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
  [<CommonParameters>]
 ```
 
@@ -30,64 +30,70 @@ This cmdlet has no aliases.
 
 ## DESCRIPTION
 
-Sends a prompt to the Anthropic Claude API using SSE (Server-Sent Events) streaming. Tokens are displayed on the console in real time as they arrive. The full response is returned as an AIResponse object, which behaves like a string in most contexts.
+Sends a prompt to the DeepSeek API using SSE (Server-Sent Events) streaming. Tokens are displayed on the console in real time as they arrive. The full response is returned as an AIResponse object, which behaves like a string in most contexts.
 
-Requires the `ANTHROPIC_API_KEY` environment variable to be set with a valid Anthropic API key.
+Requires the `DEEPSEEK_API_KEY` environment variable to be set with a valid DeepSeek API key.
 
-Friendly model aliases are supported: Opus4, Sonnet4, Haiku4 (and shorter forms Opus, Sonnet, Haiku). Full model IDs (e.g., claude-sonnet-4-20250514) are also accepted. Default model is Sonnet 4.
+DeepSeek's API is OpenAI-compatible. Current models:
+- **`deepseek-v4-flash`** (default) — fast, cheap general-purpose chat
+- **`deepseek-v4-pro`** — more capable, supports chain-of-thought reasoning
+
+Note: `deepseek-chat` and `deepseek-reasoner` are also accepted but scheduled for deprecation on 2026-07-24.
 
 ## EXAMPLES
 
 ### Example 1: Basic prompt
 
 ```powershell
-Invoke-Claude "Explain PowerShell pipelines in one paragraph."
+Invoke-DeepSeek "Explain PowerShell pipelines in one paragraph."
 ```
 
-Sends the prompt to Claude Sonnet (default model) and streams the response to the console.
+Sends the prompt to deepseek-v4-flash (default) and streams the response.
 
 ### Example 2: Capture result in a variable
 
 ```powershell
-$result = Invoke-Claude "What is 2+2?"
+$result = Invoke-DeepSeek "What is 2+2?"
 $result.Text    # "4"
 "$result"       # "4" (implicit string conversion)
 ```
 
 The AIResponse object supports `.Text` property access and implicit string conversion.
 
-### Example 3: Use a specific model
+### Example 3: Use the more capable model
 
 ```powershell
-Invoke-Claude -Model Opus4 "Write a detailed analysis of this error: $errorMsg"
-Invoke-Claude -Model Haiku4 "Translate to Japanese: Hello"
+Invoke-DeepSeek -Model deepseek-v4-pro "Prove that the square root of 2 is irrational."
 ```
 
-Use `-Model` with friendly aliases (Opus4, Sonnet4, Haiku4) or full model IDs.
+`deepseek-v4-pro` is more capable than the default `-flash` variant and supports chain-of-thought reasoning. Note: only the final answer is streamed; reasoning content (`delta.reasoning_content`) is not surfaced by this cmdlet today.
 
 ### Example 4: Pipeline input
 
 ```powershell
-Get-Content error.log | Invoke-Claude "Summarize the errors in this log."
+Get-Content error.log | Invoke-DeepSeek "Summarize the errors in this log."
 ```
 
-Content piped into Invoke-Claude is joined with newlines and prepended to the prompt.
+Content piped into Invoke-DeepSeek is joined with newlines and prepended to the prompt.
 
 ### Example 5: System prompt
 
 ```powershell
-Invoke-Claude "List running services" -SystemPrompt "You are a Windows system administrator. Be concise."
+Invoke-DeepSeek "List running services" -SystemPrompt "You are a Windows system administrator. Be concise."
 ```
 
 The system prompt guides the AI's behavior and response style.
 
-### Example 6: Pipe output to another command
+### Example 6: Compare across providers
 
 ```powershell
-Invoke-Claude "Generate a CSV of 5 sample users" | Set-Content users.csv
+$claude   = Invoke-Claude   "What is the best sorting algorithm?"
+$gpt      = Invoke-GPT      "What is the best sorting algorithm?"
+$deepseek = Invoke-DeepSeek "What is the best sorting algorithm?"
+"Claude says: $claude"
+"GPT says: $gpt"
+"DeepSeek says: $deepseek"
 ```
-
-When piped, streaming display is suppressed and the output goes directly to the pipeline.
 
 ## PARAMETERS
 
@@ -114,11 +120,11 @@ HelpMessage: ''
 
 ### -Model
 
-Model name or friendly alias. Aliases: Opus4, Opus, Sonnet4, Sonnet, Haiku4, Haiku. Full model IDs are also accepted. Default is claude-sonnet-4-20250514 (Sonnet 4).
+DeepSeek model name. Accepts `deepseek-v4-flash` (default) or `deepseek-v4-pro`. Legacy `deepseek-chat` / `deepseek-reasoner` also work until their 2026-07-24 deprecation. Tab completion fetches the live list from `/models` when the API key is set.
 
 ```yaml
 Type: System.String
-DefaultValue: 'claude-sonnet-4-20250514'
+DefaultValue: 'deepseek-v4-flash'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -190,18 +196,21 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ## OUTPUTS
 
-### PowerShell.MCP.Cmdlets.AIResponse
+### PromptAI.Cmdlets.AIResponse
 
 An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
-- Requires `ANTHROPIC_API_KEY` environment variable.
-- Uses Anthropic Messages API (https://api.anthropic.com/v1/messages) with SSE streaming.
-- API version: 2023-06-01 (stable, unchanged since 2023).
+- Requires `DEEPSEEK_API_KEY` environment variable.
+- Uses DeepSeek Chat Completions API (https://api.deepseek.com/chat/completions) with SSE streaming.
+- API is OpenAI-compatible.
 - Streaming tokens are displayed via Host.UI.Write, which does not interfere with pipeline output.
 
 ## RELATED LINKS
 
+- [Invoke-Claude](Invoke-Claude.md)
 - [Invoke-GPT](Invoke-GPT.md)
-- [Anthropic API Documentation](https://docs.anthropic.com/en/api/messages)
+- [Invoke-Gemini](Invoke-Gemini.md)
+- [Invoke-Llama](Invoke-Llama.md)
+- [DeepSeek API Documentation](https://api-docs.deepseek.com/)

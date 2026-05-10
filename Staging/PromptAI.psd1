@@ -2,7 +2,7 @@
 
 RootModule = 'PromptAI.dll'
 
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.1.2'
 
 CompatiblePSEditions = @('Core')
 
@@ -14,7 +14,7 @@ CompanyName = 'Yoshifumi Tsuda'
 
 Copyright = '(c) Yoshifumi Tsuda. All rights reserved.'
 
-Description = 'Call AI models from PowerShell with real-time streaming. Supports Anthropic Claude, OpenAI GPT, and Google Gemini. Works with PowerShell.MCP for AI-to-AI communication.'
+Description = 'Call AI models from PowerShell with real-time streaming. Supports Anthropic Claude, OpenAI GPT, Google Gemini, Meta Llama (via Groq/Meta/Together), and DeepSeek. Works with PowerShell.MCP for AI-to-AI communication.'
 
 PowerShellVersion = '7.4'
 
@@ -23,7 +23,9 @@ FormatsToProcess = @('PromptAI.Format.ps1xml')
 CmdletsToExport = @(
 'Invoke-Claude',
 'Invoke-GPT',
-'Invoke-Gemini'
+'Invoke-Gemini',
+'Invoke-Llama',
+'Invoke-DeepSeek'
 )
 
 FunctionsToExport = @()
@@ -36,13 +38,13 @@ PrivateData = @{
 
     PSData = @{
 
-        Tags = 'AI','Claude','GPT','Gemini','Anthropic','OpenAI','Google','LLM','Streaming','Prompt'
+        Tags = 'AI','Claude','GPT','Gemini','Llama','DeepSeek','Anthropic','OpenAI','Google','Meta','Groq','Together','LLM','Streaming','Prompt'
 
         LicenseUri = 'https://github.com/yotsuda/PromptAI/blob/master/LICENSE'
 
         ProjectUri = 'https://github.com/yotsuda/PromptAI'
 
-        ReleaseNotes = 'Initial release. Invoke-Claude, Invoke-GPT, Invoke-Gemini with SSE streaming.'
+        ReleaseNotes = 'Added Invoke-Llama (-Provider Groq|Meta|Together) and Invoke-DeepSeek cmdlets.'
 
     }
 

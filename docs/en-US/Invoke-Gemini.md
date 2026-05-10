@@ -1,26 +1,26 @@
 ---
 document type: cmdlet
-external help file: PowerShell.MCP.dll-Help.xml
-HelpUri: ''
+external help file: PromptAI.dll-Help.xml
+HelpUri: https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Gemini.md
 Locale: en-US
-Module Name: PowerShell.MCP
-ms.date: 04/01/2026
+Module Name: PromptAI
+ms.date: 05/10/2026
 PlatyPS schema version: 2024-05-01
-title: Invoke-GPT
+title: Invoke-Gemini
 ---
 
-# Invoke-GPT
+# Invoke-Gemini
 
 ## SYNOPSIS
 
-Sends a prompt to the OpenAI API and returns the response with real-time streaming.
+Sends a prompt to the Google Gemini API and returns the response with real-time streaming.
 
 ## SYNTAX
 
 ### __AllParameterSets
 
 ```
-Invoke-GPT [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
+Invoke-Gemini [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
  [<CommonParameters>]
 ```
 
@@ -30,26 +30,26 @@ This cmdlet has no aliases.
 
 ## DESCRIPTION
 
-Sends a prompt to the OpenAI chat completions API using SSE (Server-Sent Events) streaming. Tokens are displayed on the console in real time as they arrive. The full response is returned as an AIResponse object, which behaves like a string in most contexts.
+Sends a prompt to the Google Gemini API using SSE (Server-Sent Events) streaming via the `streamGenerateContent` endpoint. Tokens are displayed on the console in real time as they arrive. The full response is returned as an AIResponse object, which behaves like a string in most contexts.
 
-Requires the `OPENAI_API_KEY` environment variable to be set with a valid OpenAI API key.
+Requires the `GEMINI_API_KEY` environment variable to be set with a valid Google AI Studio API key.
 
-Friendly model aliases are supported: 4o, GPT4o, 4.1, GPT4.1, o3, o4-mini. Full model IDs (e.g., gpt-4o) are also accepted. Default model is gpt-4o.
+Tab completion suggests available models from the v1beta `models` API; falls back to gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-flash when the API key is unset or unreachable. Default model is gemini-2.5-flash.
 
 ## EXAMPLES
 
 ### Example 1: Basic prompt
 
 ```powershell
-Invoke-GPT "Explain PowerShell pipelines in one paragraph."
+Invoke-Gemini "Explain PowerShell pipelines in one paragraph."
 ```
 
-Sends the prompt to GPT-4o (default model) and streams the response to the console.
+Sends the prompt to gemini-2.5-flash (default model) and streams the response to the console.
 
 ### Example 2: Capture result in a variable
 
 ```powershell
-$result = Invoke-GPT "What is 2+2?"
+$result = Invoke-Gemini "What is 2+2?"
 $result.Text    # "4"
 "$result"       # "4" (implicit string conversion)
 ```
@@ -59,44 +59,46 @@ The AIResponse object supports `.Text` property access and implicit string conve
 ### Example 3: Use a specific model
 
 ```powershell
-Invoke-GPT -Model o3 "Write a detailed analysis of this error: $errorMsg"
-Invoke-GPT -Model o4-mini "Translate to Japanese: Hello"
+Invoke-Gemini -Model gemini-2.5-pro "Write a detailed analysis of this error: $errorMsg"
+Invoke-Gemini -Model gemini-2.0-flash "Translate to Japanese: Hello"
 ```
 
-Use `-Model` with friendly aliases (4o, o3, o4-mini) or full model IDs.
+Use `-Model` with a full Gemini model ID. Tab completion suggests available models.
 
 ### Example 4: Pipeline input
 
 ```powershell
-Get-Content error.log | Invoke-GPT "Summarize the errors in this log."
+Get-Content error.log | Invoke-Gemini "Summarize the errors in this log."
 ```
 
-Content piped into Invoke-GPT is joined with newlines and prepended to the prompt.
+Content piped into Invoke-Gemini is joined with newlines and prepended to the prompt.
 
 ### Example 5: System prompt
 
 ```powershell
-Invoke-GPT "List running services" -SystemPrompt "You are a Windows system administrator. Be concise."
+Invoke-Gemini "List running services" -SystemPrompt "You are a Windows system administrator. Be concise."
 ```
 
-The system prompt guides the AI's behavior and response style.
+The system prompt is sent as `systemInstruction` and guides the AI's behavior and response style.
 
-### Example 6: Compare with Claude
+### Example 6: Compare across providers
 
 ```powershell
 $claude = Invoke-Claude "What is the best sorting algorithm?"
-$gpt = Invoke-GPT "What is the best sorting algorithm?"
+$gpt    = Invoke-GPT    "What is the best sorting algorithm?"
+$gemini = Invoke-Gemini "What is the best sorting algorithm?"
 "Claude says: $claude"
 "GPT says: $gpt"
+"Gemini says: $gemini"
 ```
 
-Use both Invoke-Claude and Invoke-GPT to compare responses from different AI providers.
+Use Invoke-Claude, Invoke-GPT, and Invoke-Gemini to compare responses from different AI providers.
 
 ## PARAMETERS
 
 ### -MaxTokens
 
-Maximum number of tokens in the AI response. Default is 4096.
+Maximum number of output tokens in the AI response. Default is 4096. Sent as `generationConfig.maxOutputTokens` only when set to a non-default value.
 
 ```yaml
 Type: System.Int32
@@ -117,11 +119,11 @@ HelpMessage: ''
 
 ### -Model
 
-Model name or friendly alias. Aliases: 4o, GPT4o, 4.1, GPT4.1, o3, o4-mini. Full model IDs are also accepted. Default is gpt-4o.
+Gemini model name. Full model IDs are accepted (e.g., gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-flash). Default is gemini-2.5-flash.
 
 ```yaml
 Type: System.String
-DefaultValue: 'gpt-4o'
+DefaultValue: 'gemini-2.5-flash'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -159,7 +161,7 @@ HelpMessage: ''
 
 ### -SystemPrompt
 
-Optional system prompt to guide the AI's behavior and response style.
+Optional system prompt sent as `systemInstruction` to guide the AI's behavior and response style.
 
 ```yaml
 Type: System.String
@@ -193,18 +195,20 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ## OUTPUTS
 
-### PowerShell.MCP.Cmdlets.AIResponse
+### PromptAI.Cmdlets.AIResponse
 
 An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
-- Requires `OPENAI_API_KEY` environment variable.
-- Uses OpenAI Chat Completions API (https://api.openai.com/v1/chat/completions) with SSE streaming.
-- OpenAI API requires prepaid credits (separate from ChatGPT subscription).
+- Requires `GEMINI_API_KEY` environment variable.
+- Uses Google Generative Language API streamGenerateContent (https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse) with SSE streaming.
 - Streaming tokens are displayed via Host.UI.Write, which does not interfere with pipeline output.
 
 ## RELATED LINKS
 
 - [Invoke-Claude](Invoke-Claude.md)
-- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference/chat)
+- [Invoke-GPT](Invoke-GPT.md)
+- [Invoke-Llama](Invoke-Llama.md)
+- [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
