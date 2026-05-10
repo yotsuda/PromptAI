@@ -36,8 +36,9 @@ public class InvokeGPTCmdlet : AIStreamingCmdletBase
             ?? throw new PSInvalidOperationException("OPENAI_API_KEY environment variable is not set.");
 
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
+        var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, systemPrompt, history, userContent, images);
+        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
         request.Headers.Add("Authorization", $"Bearer {apiKey}");

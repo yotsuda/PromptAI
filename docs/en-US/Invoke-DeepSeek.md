@@ -172,7 +172,7 @@ HelpMessage: ''
 
 ### -History
 
-Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation.
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation. `-SystemPrompt` is inherited from the prior turn unless you pass it again to override.
 
 ```yaml
 Type: PromptAI.Cmdlets.AIResponse

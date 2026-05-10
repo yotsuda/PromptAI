@@ -34,6 +34,13 @@ public class AIResponse
     /// </summary>
     public IReadOnlyList<ConversationTurn> Turns { get; }
 
+    /// <summary>
+    /// System prompt that was in effect for this turn. When the AIResponse is
+    /// passed as -History to a subsequent Invoke-X call, the system prompt is
+    /// inherited unless the new call explicitly overrides it with -SystemPrompt.
+    /// </summary>
+    public string? SystemPrompt { get; }
+
     public AIResponse(
         string text,
         string model,
@@ -42,7 +49,8 @@ public class AIResponse
         int outputTokens = 0,
         decimal? estimatedCostUSD = null,
         TimeSpan duration = default,
-        IReadOnlyList<ConversationTurn>? turns = null)
+        IReadOnlyList<ConversationTurn>? turns = null,
+        string? systemPrompt = null)
     {
         Text = text;
         Model = model;
@@ -52,6 +60,7 @@ public class AIResponse
         EstimatedCostUSD = estimatedCostUSD;
         Duration = duration;
         Turns = turns ?? Array.Empty<ConversationTurn>();
+        SystemPrompt = systemPrompt;
     }
 
     public override string ToString() => Text;

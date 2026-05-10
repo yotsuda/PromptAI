@@ -37,8 +37,9 @@ public class InvokeDeepSeekCmdlet : AIStreamingCmdletBase
             ?? throw new PSInvalidOperationException("DEEPSEEK_API_KEY environment variable is not set.");
 
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
+        var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, systemPrompt, history, userContent, images);
+        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.deepseek.com/chat/completions");
         request.Headers.Add("Authorization", $"Bearer {apiKey}");

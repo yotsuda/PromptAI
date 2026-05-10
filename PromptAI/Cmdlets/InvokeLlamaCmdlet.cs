@@ -42,8 +42,9 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
             ?? throw new PSInvalidOperationException($"{envName} environment variable is not set.");
 
         var resolvedModel = string.IsNullOrEmpty(model) ? defaultModel : model;
+        var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, systemPrompt, history, userContent, images);
+        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
         request.Headers.Add("Authorization", $"Bearer {apiKey}");

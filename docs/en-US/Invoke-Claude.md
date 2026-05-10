@@ -89,7 +89,7 @@ $h2 = Invoke-Claude "What's my name?" -History $h1
 # Claude replies "Yoshi" because $h1's full conversation is replayed.
 ```
 
-Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`.
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`. The system prompt from the prior turn is inherited automatically — pass `-SystemPrompt` again only to override it.
 
 ### Example 7: Image input (vision)
 
@@ -176,7 +176,7 @@ HelpMessage: ''
 
 ### -History
 
-Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation. The returned AIResponse carries the full updated history.
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation. The returned AIResponse carries the full updated history and the system prompt; `-SystemPrompt` is inherited unless you pass it again to override.
 
 ```yaml
 Type: PromptAI.Cmdlets.AIResponse

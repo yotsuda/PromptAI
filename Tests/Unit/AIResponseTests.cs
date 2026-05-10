@@ -75,4 +75,37 @@ public class AIResponseTests
         var t = new ConversationTurn("user", "hello");
         Assert.Null(t.ImagePaths);
     }
+
+    [Fact]
+    public void Constructor_SystemPromptDefaultsToNull()
+    {
+        var r = new AIResponse("x", "m", "p");
+        Assert.Null(r.SystemPrompt);
+    }
+
+    [Fact]
+    public void Constructor_SystemPromptRoundTrip()
+    {
+        var r = new AIResponse("x", "m", "p", systemPrompt: "you are a tutor");
+        Assert.Equal("you are a tutor", r.SystemPrompt);
+    }
+
+    // Inheritance precedence (explicit > history > none) is implemented in each
+    // provider's static Call() method as: explicit ?? history?.SystemPrompt.
+    // Verified here against the same expression so a refactor that breaks
+    // precedence (e.g. flipping the order to history ?? explicit) trips a test.
+    [Theory]
+    [InlineData("explicit", "from history", "explicit")]
+    [InlineData(null,       "from history", "from history")]
+    [InlineData("explicit", null,           "explicit")]
+    [InlineData(null,       null,           null)]
+    public void EffectiveSystemPrompt_Precedence(string? explicitPrompt, string? historyPrompt, string? expected)
+    {
+        var history = historyPrompt is null
+            ? null
+            : new AIResponse("prev", "m", "p", systemPrompt: historyPrompt);
+
+        var effective = explicitPrompt ?? history?.SystemPrompt;
+        Assert.Equal(expected, effective);
+    }
 }

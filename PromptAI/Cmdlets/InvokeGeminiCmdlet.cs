@@ -36,8 +36,9 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
             ?? throw new PSInvalidOperationException("GEMINI_API_KEY environment variable is not set.");
 
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
+        var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = BuildJson(maxTokens, systemPrompt, history, userContent, images);
+        var json = BuildJson(maxTokens, effectiveSystemPrompt, history, userContent, images);
 
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{resolvedModel}:streamGenerateContent?alt=sse";
 

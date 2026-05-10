@@ -37,8 +37,9 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
             ?? throw new PSInvalidOperationException("ANTHROPIC_API_KEY environment variable is not set.");
 
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
+        var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = BuildJson(resolvedModel, maxTokens, systemPrompt, history, userContent, images);
+        var json = BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
         request.Headers.Add("x-api-key", apiKey);

@@ -7,7 +7,7 @@
 
 ## Existing cmdlets — new parameters
 
-- **`-History <AIResponse>`** on every `Invoke-X`: pass an AIResponse from a prior call to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`.
+- **`-History <AIResponse>`** on every `Invoke-X`: pass an AIResponse from a prior call to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`. The system prompt is inherited automatically — pass `-SystemPrompt` again only to override.
 - **`-Image <string[]>`** on `Invoke-Claude`, `Invoke-GPT`, `Invoke-Gemini`, `Invoke-Llama`: attach one or more images (local file path or HTTPS URL) to the current turn. URL passthrough for Anthropic/OpenAI/Llama; lazy download + base64 inline for Gemini. DeepSeek's current models do not support image input.
 
 ## Enriched `AIResponse`
@@ -20,6 +20,7 @@ Every Invoke-X return value now includes:
 | `EstimatedCostUSD` | Best-effort cost from a hard-coded pricing table; null when the model isn't recognized. |
 | `Duration` | Wall-clock duration of the API call. |
 | `Turns` | Full conversation, including the new exchange. Pass back as `-History`. |
+| `SystemPrompt` | The system prompt in effect for this turn — preserved across `-History` chaining unless overridden. |
 
 Existing `.Text`, `.Model`, `.Provider`, and string-conversion behavior are unchanged — non-breaking addition.
 

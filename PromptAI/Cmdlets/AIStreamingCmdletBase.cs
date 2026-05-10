@@ -73,6 +73,11 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
     {
         var userContent = string.Join("\n", _promptLines);
 
+        // Effective system prompt: explicit -SystemPrompt wins; otherwise inherit
+        // from -History so a chained conversation keeps its persona without the
+        // caller having to re-specify it on every turn.
+        var effectiveSystemPrompt = SystemPrompt ?? History?.SystemPrompt;
+
         var sw = Stopwatch.StartNew();
         var result = CallAPI(userContent);
         sw.Stop();
@@ -93,7 +98,8 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
             outputTokens: result.OutputTokens,
             estimatedCostUSD: cost,
             duration: sw.Elapsed,
-            turns: turns);
+            turns: turns,
+            systemPrompt: effectiveSystemPrompt);
 
         LastResponse = result.Text;
         WriteObject(response);
