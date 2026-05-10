@@ -94,6 +94,26 @@ $gemini = Invoke-Gemini "What is the best sorting algorithm?"
 
 Use Invoke-Claude, Invoke-GPT, and Invoke-Gemini to compare responses from different AI providers.
 
+### Example 7: Multi-turn conversation
+
+```powershell
+$h1 = Invoke-Gemini "My name is Yoshi."
+$h2 = Invoke-Gemini "What's my name?" -History $h1
+# Gemini replies "Yoshi" because $h1's full conversation is replayed.
+```
+
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`. Gemini's wire format uses role `model` for assistant turns; the cmdlet converts automatically.
+
+### Example 8: Image input (vision)
+
+```powershell
+Invoke-Gemini "What's in this image?" -Image .\screenshot.png
+Invoke-Gemini "Compare these" -Image chart-a.png, chart-b.png
+Invoke-Gemini "OCR this receipt" -Image https://example.com/receipt.jpg
+```
+
+`-Image` accepts local paths or HTTPS URLs. Gemini's `file_data` only accepts GCS URIs, so URLs are downloaded by the cmdlet and inlined as base64. All current Gemini models support image input.
+
 ## PARAMETERS
 
 ### -MaxTokens

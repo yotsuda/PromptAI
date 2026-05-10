@@ -92,6 +92,26 @@ $gpt = Invoke-GPT "What is the best sorting algorithm?"
 
 Use both Invoke-Claude and Invoke-GPT to compare responses from different AI providers.
 
+### Example 7: Multi-turn conversation
+
+```powershell
+$h1 = Invoke-GPT "My name is Yoshi."
+$h2 = Invoke-GPT "What's my name?" -History $h1
+# GPT replies "Yoshi" because $h1's full conversation is replayed.
+```
+
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`.
+
+### Example 8: Image input (vision)
+
+```powershell
+Invoke-GPT "What's in this image?" -Image .\screenshot.png
+Invoke-GPT "Compare these" -Image chart-a.png, chart-b.png
+Invoke-GPT "OCR this" -Image https://example.com/receipt.jpg
+```
+
+`-Image` accepts local paths or HTTPS URLs. OpenAI accepts URL inputs directly (no download needed); local files are base64-encoded and inlined. Use a vision-capable model (gpt-4o, gpt-4o-mini, gpt-4.1, o3, o4-mini).
+
 ## PARAMETERS
 
 ### -MaxTokens

@@ -94,6 +94,28 @@ Invoke-Llama "List running services" -SystemPrompt "You are a Windows system adm
 
 The system prompt guides the AI's behavior and response style.
 
+### Example 7: Multi-turn conversation
+
+```powershell
+$h1 = Invoke-Llama "My name is Yoshi."
+$h2 = Invoke-Llama "What's my name?" -History $h1
+# Llama replies "Yoshi" because $h1's full conversation is replayed.
+```
+
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`.
+
+### Example 8: Image input (vision-capable models only)
+
+```powershell
+# Groq: only llama-3.2-90b-vision-preview supports vision
+Invoke-Llama "Describe this" -Image .\screenshot.png -Model llama-3.2-90b-vision-preview
+
+# Meta: Llama-4-* models are multimodal
+Invoke-Llama "OCR this" -Image .\receipt.jpg -Provider Meta
+```
+
+`-Image` accepts local paths or HTTPS URLs. URL passthrough for OpenAI-compatible endpoints (no download needed); local files are base64-encoded and inlined. Calling with `-Image` against a text-only model fails at the API.
+
 ## PARAMETERS
 
 ### -MaxTokens

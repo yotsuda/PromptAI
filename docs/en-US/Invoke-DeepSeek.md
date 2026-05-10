@@ -95,6 +95,16 @@ $deepseek = Invoke-DeepSeek "What is the best sorting algorithm?"
 "DeepSeek says: $deepseek"
 ```
 
+### Example 7: Multi-turn conversation
+
+```powershell
+$h1 = Invoke-DeepSeek "My name is Yoshi."
+$h2 = Invoke-DeepSeek "What's my name?" -History $h1
+# DeepSeek replies "Yoshi" because $h1's full conversation is replayed.
+```
+
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`. Image input is not supported by DeepSeek's current models — `Invoke-DeepSeek` does not expose `-Image`.
+
 ## PARAMETERS
 
 ### -MaxTokens
