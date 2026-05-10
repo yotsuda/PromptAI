@@ -14,7 +14,7 @@ CompanyName = 'Yoshifumi Tsuda'
 
 Copyright = '(c) Yoshifumi Tsuda. All rights reserved.'
 
-Description = 'Call AI models from PowerShell with real-time streaming. Supports Anthropic Claude, OpenAI GPT, Google Gemini, Meta Llama (via Groq/Meta/Together), and DeepSeek. Works with PowerShell.MCP for AI-to-AI communication.'
+Description = 'Call AI models from PowerShell with real-time streaming. Supports Anthropic Claude, OpenAI GPT, Google Gemini, Meta Llama (via Groq/Meta/Together), and DeepSeek. Works with PowerShell.MCP or @ytsuda/ripple for AI-to-AI communication.'
 
 PowerShellVersion = '7.4'
 
