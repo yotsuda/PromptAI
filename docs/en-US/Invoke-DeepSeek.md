@@ -21,7 +21,7 @@ Sends a prompt to the DeepSeek API and returns the response with real-time strea
 
 ```
 Invoke-DeepSeek [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [<CommonParameters>]
+ [-History <AIResponse>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -160,6 +160,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -History
+
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation.
+
+```yaml
+Type: PromptAI.Cmdlets.AIResponse
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -SystemPrompt
 
 Optional system prompt to guide the AI's behavior and response style.
@@ -198,7 +219,7 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ### PromptAI.Cmdlets.AIResponse
 
-An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
+Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort), `.Duration`, and `.Turns` (full conversation including this exchange — pass back as `-History` to continue). Supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
@@ -213,4 +234,6 @@ An object containing the AI response text. Has a `.Text` property and supports i
 - [Invoke-GPT](Invoke-GPT.md)
 - [Invoke-Gemini](Invoke-Gemini.md)
 - [Invoke-Llama](Invoke-Llama.md)
+- [Compare-AI](Compare-AI.md)
+- [Get-DeepSeekBalance](Get-DeepSeekBalance.md)
 - [DeepSeek API Documentation](https://api-docs.deepseek.com/)

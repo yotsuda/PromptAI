@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Management.Automation;
 using System.Net.Http;
 using System.Text;
@@ -6,18 +7,26 @@ using System.Text.Json;
 namespace PromptAI.Cmdlets;
 
 /// <summary>
-/// Base class for AI streaming cmdlets.
-/// Handles pipeline input accumulation, SSE streaming with Host.UI.Write,
-/// and outputs AIResponse (whose custom format suppresses Out-Default display).
+/// Result returned by per-provider API call helpers. Wraps the response text,
+/// the resolved model name, and token usage extracted from the SSE stream.
+/// AIStreamingCmdletBase wraps this into the user-facing AIResponse.
+/// </summary>
+public record ApiCallResult(string Text, string Model, int InputTokens, int OutputTokens);
+
+/// <summary>
+/// Base class for AI streaming cmdlets. Handles parameter binding (Prompt,
+/// SystemPrompt, Model, MaxTokens, History, Image), pipeline accumulation,
+/// stopwatch / cost / turns assembly, and AIResponse output. Each provider
+/// implements <see cref="CallAPI"/> to do the provider-specific HTTP request.
 /// </summary>
 public abstract class AIStreamingCmdletBase : PSCmdlet
 {
     internal static readonly HttpClient s_httpClient = new() { Timeout = TimeSpan.FromMinutes(10) };
 
     /// <summary>
-    /// Holds the text output from the last Invoke-Claude or Invoke-GPT call.
-    /// The MCP polling engine clears this before each command execution and
-    /// reads it afterward, so only MCP-triggered results are included in the response.
+    /// Holds the text output from the last Invoke-X call. The MCP polling engine
+    /// clears this before each command execution and reads it afterward, so only
+    /// MCP-triggered results are included in the response.
     /// </summary>
     public static string? LastResponse { get; set; }
 
@@ -37,8 +46,22 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
     public int MaxTokens { get; set; } = 4096;
 
     /// <summary>
-    /// Provider name for AIResponse metadata (e.g., "Anthropic", "OpenAI").
+    /// Prior conversation. Pass an AIResponse from an earlier call to continue
+    /// the conversation. The new turn is appended; the returned AIResponse carries
+    /// the full updated history.
     /// </summary>
+    [Parameter]
+    public AIResponse? History { get; set; }
+
+    /// <summary>
+    /// One or more image inputs for multimodal models. Each entry is a local file
+    /// path or HTTPS URL. Only attached to the current turn (not re-attached when
+    /// chaining via -History). Use a vision-capable model.
+    /// </summary>
+    [Parameter]
+    public string[]? Image { get; set; }
+
+    /// <summary>Provider name for AIResponse metadata (e.g., "Anthropic", "OpenAI").</summary>
     protected abstract string ProviderName { get; }
 
     protected override void ProcessRecord()
@@ -50,28 +73,48 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
     {
         var userContent = string.Join("\n", _promptLines);
 
-        // Always stream to console via Host.UI.Write.
-        // Always WriteObject(AIResponse) for pipeline/variable capture.
-        // AIResponse has a custom format (empty view) so Out-Default shows nothing,
-        // avoiding double display. Piped or assigned, the object carries the full text.
-        var (text, resolvedModel) = CallAPI(userContent);
+        var sw = Stopwatch.StartNew();
+        var result = CallAPI(userContent);
+        sw.Stop();
 
-        LastResponse = text;
-        WriteObject(new AIResponse(text, resolvedModel, ProviderName));
+        var cost = Pricing.Compute(result.Model, result.InputTokens, result.OutputTokens);
+
+        // Accumulate turns: prior history (if any) + new user turn + new assistant turn.
+        var turns = new List<ConversationTurn>();
+        if (History?.Turns != null) turns.AddRange(History.Turns);
+        turns.Add(new ConversationTurn("user", userContent, Image));
+        turns.Add(new ConversationTurn("assistant", result.Text));
+
+        var response = new AIResponse(
+            text: result.Text,
+            model: result.Model,
+            provider: ProviderName,
+            inputTokens: result.InputTokens,
+            outputTokens: result.OutputTokens,
+            estimatedCostUSD: cost,
+            duration: sw.Elapsed,
+            turns: turns);
+
+        LastResponse = result.Text;
+        WriteObject(response);
     }
 
     /// <summary>
-    /// Implemented by derived classes to call the provider-specific API.
-    /// Returns (responseText, resolvedModelName).
+    /// Implemented by derived classes. The instance has access to History, Image,
+    /// SystemPrompt, Model, and MaxTokens via inherited properties.
     /// </summary>
-    protected abstract (string text, string model) CallAPI(string userContent);
+    protected abstract ApiCallResult CallAPI(string userContent);
 
     /// <summary>
-    /// Reads an SSE stream, extracts text deltas via the provided parser,
-    /// streams each chunk to the console via Host.UI.Write,
-    /// and returns the full accumulated text.
+    /// Reads an SSE stream, extracts text deltas via the provided parser, optionally
+    /// extracts usage info per chunk, streams each text chunk to the console via
+    /// onToken, and returns the accumulated text plus final input/output token counts.
     /// </summary>
-    protected string ReadSSEStream(HttpRequestMessage request, Func<JsonElement, string?> parseDelta)
+    internal static (string text, int inputTokens, int outputTokens) ReadSSEStream(
+        HttpRequestMessage request,
+        Func<JsonElement, string?> parseDelta,
+        Func<JsonElement, (int? input, int? output)>? parseUsage = null,
+        Action<string>? onToken = null)
     {
         var response = s_httpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
         EnsureSuccess(response);
@@ -80,6 +123,8 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
         using var reader = new StreamReader(stream);
 
         var result = new StringBuilder();
+        int inputTokens = 0;
+        int outputTokens = 0;
 
         while (reader.ReadLine() is { } line)
         {
@@ -98,26 +143,32 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
                 if (chunk != null)
                 {
                     result.Append(chunk);
-                    Host.UI.Write(chunk);
+                    onToken?.Invoke(chunk);
+                }
+
+                if (parseUsage != null)
+                {
+                    var (inTok, outTok) = parseUsage(doc.RootElement);
+                    if (inTok.HasValue)  inputTokens  = inTok.Value;
+                    if (outTok.HasValue) outputTokens = outTok.Value;
                 }
             }
-            catch (JsonException)
+            catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException)
             {
-                // Skip malformed SSE chunks rather than aborting the entire stream.
+                // Skip malformed / unexpected-shape SSE chunks rather than aborting the entire stream.
             }
         }
 
-        // No Host.UI.WriteLine() here — the formatter's output provides the trailing newline.
-        return result.ToString();
+        return (result.ToString(), inputTokens, outputTokens);
     }
 
-    protected void EnsureSuccess(HttpResponseMessage response)
+    internal static void EnsureSuccess(HttpResponseMessage response, string? cmdletName = null)
     {
         if (!response.IsSuccessStatusCode)
         {
             var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            var cmdletName = MyInvocation.MyCommand.Name;
-            throw new HttpRequestException($"{cmdletName}: API returned {(int)response.StatusCode}: {body}");
+            var label = cmdletName ?? "API";
+            throw new HttpRequestException($"{label}: API returned {(int)response.StatusCode}: {body}");
         }
     }
 }

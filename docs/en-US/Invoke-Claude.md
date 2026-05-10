@@ -21,7 +21,7 @@ Sends a prompt to the Anthropic Claude API and returns the response with real-ti
 
 ```
 Invoke-Claude [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [<CommonParameters>]
+ [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -81,7 +81,27 @@ Invoke-Claude "List running services" -SystemPrompt "You are a Windows system ad
 
 The system prompt guides the AI's behavior and response style.
 
-### Example 6: Pipe output to another command
+### Example 6: Multi-turn conversation
+
+```powershell
+$h1 = Invoke-Claude "My name is Yoshi."
+$h2 = Invoke-Claude "What's my name?" -History $h1
+# Claude replies "Yoshi" because $h1's full conversation is replayed.
+```
+
+Pass an AIResponse as `-History` to continue the conversation. The returned AIResponse carries the full updated history in `.Turns`.
+
+### Example 7: Image input (vision)
+
+```powershell
+Invoke-Claude "What's in this image?" -Image .\screenshot.png
+Invoke-Claude "Compare these" -Image chart-a.png, chart-b.png
+Invoke-Claude "OCR this" -Image https://example.com/receipt.jpg
+```
+
+`-Image` accepts local paths or HTTPS URLs. Anthropic accepts URL inputs directly (no download needed); local files are base64-encoded and inlined.
+
+### Example 8: Pipe output to another command
 
 ```powershell
 Invoke-Claude "Generate a CSV of 5 sample users" | Set-Content users.csv
@@ -154,6 +174,48 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -History
+
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation. The returned AIResponse carries the full updated history.
+
+```yaml
+Type: PromptAI.Cmdlets.AIResponse
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Image
+
+One or more image inputs. Each entry is a local file path or HTTPS URL. Only attached to the current turn (not re-attached when chaining via `-History`). Use a vision-capable Claude model (all current models support vision).
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -SystemPrompt
 
 Optional system prompt to guide the AI's behavior and response style.
@@ -192,7 +254,7 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ### PromptAI.Cmdlets.AIResponse
 
-An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
+Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort; null when model unknown to pricing table), `.Duration`, and `.Turns` (full conversation including this exchange — pass back as `-History` to continue). Supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
@@ -207,4 +269,5 @@ An object containing the AI response text. Has a `.Text` property and supports i
 - [Invoke-Gemini](Invoke-Gemini.md)
 - [Invoke-Llama](Invoke-Llama.md)
 - [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Compare-AI](Compare-AI.md)
 - [Anthropic API Documentation](https://docs.anthropic.com/en/api/messages)

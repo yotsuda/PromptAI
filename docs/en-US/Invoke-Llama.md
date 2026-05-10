@@ -21,7 +21,7 @@ Sends a prompt to a Meta Llama model via Groq, Meta's official Llama API, or Tog
 
 ```
 Invoke-Llama [-Prompt] <string> [[-SystemPrompt] <string>] [-Provider <string>] [-Model <string>]
- [-MaxTokens <int>] [<CommonParameters>]
+ [-MaxTokens <int>] [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -159,6 +159,48 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -History
+
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation.
+
+```yaml
+Type: PromptAI.Cmdlets.AIResponse
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Image
+
+One or more image inputs. Each entry is a local file path or HTTPS URL. Vision is supported only by specific Llama models — Groq's `llama-3.2-90b-vision-preview` and Meta's Llama-4-* multimodal models. Calling with `-Image` against a text-only model fails at the API.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Provider
 
 Hosting provider for the Llama model. One of `Groq`, `Meta`, `Together`. Default is `Groq` (free tier, fastest inference).
@@ -221,7 +263,7 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ### PromptAI.Cmdlets.AIResponse
 
-An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
+Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort; Groq's free-tier models return null), `.Duration`, and `.Turns` (full conversation including this exchange — pass back as `-History` to continue). Supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
@@ -235,6 +277,7 @@ An object containing the AI response text. Has a `.Text` property and supports i
 - [Invoke-GPT](Invoke-GPT.md)
 - [Invoke-Gemini](Invoke-Gemini.md)
 - [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Compare-AI](Compare-AI.md)
 - [Groq API Documentation](https://console.groq.com/docs/api-reference)
 - [Llama API Documentation](https://llama.developer.meta.com/docs)
 - [Together AI Documentation](https://docs.together.ai/reference/chat-completions)

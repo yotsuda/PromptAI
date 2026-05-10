@@ -21,7 +21,7 @@ Sends a prompt to the OpenAI API and returns the response with real-time streami
 
 ```
 Invoke-GPT [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [<CommonParameters>]
+ [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -157,6 +157,48 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -History
+
+Prior conversation. Pass an AIResponse from an earlier `Invoke-X` call to continue the conversation. The returned AIResponse carries the full updated history.
+
+```yaml
+Type: PromptAI.Cmdlets.AIResponse
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Image
+
+One or more image inputs. Each entry is a local file path or HTTPS URL. Only attached to the current turn (not re-attached when chaining via `-History`). Use a vision-capable model (gpt-4o, gpt-4o-mini, gpt-4.1, o3, o4-mini).
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -SystemPrompt
 
 Optional system prompt to guide the AI's behavior and response style.
@@ -195,7 +237,7 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ### PromptAI.Cmdlets.AIResponse
 
-An object containing the AI response text. Has a `.Text` property and supports implicit conversion to string via `ToString()`.
+Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort; null when model unknown to pricing table), `.Duration`, and `.Turns` (full conversation including this exchange — pass back as `-History` to continue). Supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 
@@ -210,4 +252,5 @@ An object containing the AI response text. Has a `.Text` property and supports i
 - [Invoke-Gemini](Invoke-Gemini.md)
 - [Invoke-Llama](Invoke-Llama.md)
 - [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Compare-AI](Compare-AI.md)
 - [OpenAI API Documentation](https://platform.openai.com/docs/api-reference/chat)

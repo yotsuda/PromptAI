@@ -6,8 +6,7 @@ namespace PromptAI.Cmdlets;
 
 /// <summary>
 /// Sends a prompt to the Anthropic Claude API with streaming.
-/// Tokens are displayed on the console as they arrive via Host.UI.Write.
-/// Returns an AIResponse object (empty format suppresses Out-Default display).
+/// Supports multi-turn (-History), image input (-Image), and reports token usage.
 /// </summary>
 [Cmdlet(VerbsLifecycle.Invoke, "Claude")]
 [OutputType(typeof(AIResponse))]
@@ -21,61 +20,146 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
 
     protected override string ProviderName => "Anthropic";
 
-    protected override (string text, string model) CallAPI(string userContent)
+    protected override ApiCallResult CallAPI(string userContent)
+        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image, t => Host.UI.Write(t));
+
+    /// <summary>Static helper used by the cmdlet and by Compare-AI.</summary>
+    public static ApiCallResult Call(
+        string userContent,
+        string? systemPrompt,
+        string? model,
+        int maxTokens,
+        AIResponse? history,
+        string[]? images,
+        Action<string>? onToken)
     {
         var apiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")
             ?? throw new PSInvalidOperationException("ANTHROPIC_API_KEY environment variable is not set.");
 
-        var model = string.IsNullOrEmpty(Model) ? DefaultModel : Model;
+        var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
 
-        var json = BuildJson(model, userContent);
+        var json = BuildJson(resolvedModel, maxTokens, systemPrompt, history, userContent, images);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
         request.Headers.Add("x-api-key", apiKey);
         request.Headers.Add("anthropic-version", "2023-06-01");
         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var text = ReadSSEStream(request, ParseDelta);
-        return (text, model);
+        var (text, inTok, outTok) = ReadSSEStream(request, ParseDelta, ParseUsage, onToken);
+        return new ApiCallResult(text, resolvedModel, inTok, outTok);
     }
 
-    private string BuildJson(string model, string userContent)
+    private static string BuildJson(
+        string model, int maxTokens, string? systemPrompt,
+        AIResponse? history, string userContent, string[]? images)
     {
         using var ms = new MemoryStream();
         using (var w = new Utf8JsonWriter(ms))
         {
             w.WriteStartObject();
             w.WriteString("model", model);
-            w.WriteNumber("max_tokens", MaxTokens);
+            w.WriteNumber("max_tokens", maxTokens);
             w.WriteBoolean("stream", true);
 
-            if (!string.IsNullOrEmpty(SystemPrompt))
-                w.WriteString("system", SystemPrompt);
+            if (!string.IsNullOrEmpty(systemPrompt))
+                w.WriteString("system", systemPrompt);
 
             w.WritePropertyName("messages");
             w.WriteStartArray();
+
+            // Prior turns (text-only — image history not re-attached).
+            if (history?.Turns != null)
+            {
+                foreach (var t in history.Turns)
+                {
+                    w.WriteStartObject();
+                    w.WriteString("role", t.Role);
+                    w.WriteString("content", t.Content);
+                    w.WriteEndObject();
+                }
+            }
+
+            // Current user turn — image blocks first, then text.
             w.WriteStartObject();
             w.WriteString("role", "user");
-            w.WriteString("content", userContent);
+            if (images != null && images.Length > 0)
+            {
+                w.WritePropertyName("content");
+                w.WriteStartArray();
+                foreach (var pathOrUrl in images)
+                {
+                    var img = ImageLoader.Load(pathOrUrl);
+                    w.WriteStartObject();
+                    w.WriteString("type", "image");
+                    w.WritePropertyName("source");
+                    w.WriteStartObject();
+                    if (img.OriginalUrl != null)
+                    {
+                        w.WriteString("type", "url");
+                        w.WriteString("url", img.OriginalUrl);
+                    }
+                    else
+                    {
+                        w.WriteString("type", "base64");
+                        w.WriteString("media_type", img.MimeType);
+                        w.WriteString("data", img.EnsureBase64());
+                    }
+                    w.WriteEndObject();
+                    w.WriteEndObject();
+                }
+                w.WriteStartObject();
+                w.WriteString("type", "text");
+                w.WriteString("text", userContent);
+                w.WriteEndObject();
+                w.WriteEndArray();
+            }
+            else
+            {
+                w.WriteString("content", userContent);
+            }
             w.WriteEndObject();
-            w.WriteEndArray();
 
+            w.WriteEndArray();
             w.WriteEndObject();
         }
-
         return Encoding.UTF8.GetString(ms.ToArray());
     }
 
     private static string? ParseDelta(JsonElement root)
     {
-        if (root.TryGetProperty("type", out var type) &&
-            type.GetString() == "content_block_delta" &&
-            root.TryGetProperty("delta", out var delta) &&
-            delta.TryGetProperty("text", out var text))
+        if (root.ValueKind != JsonValueKind.Object) return null;
+        if (!root.TryGetProperty("type", out var type) || type.ValueKind != JsonValueKind.String) return null;
+        if (type.GetString() != "content_block_delta") return null;
+        if (!root.TryGetProperty("delta", out var delta) || delta.ValueKind != JsonValueKind.Object) return null;
+        if (delta.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String)
         {
             return text.GetString();
         }
-
         return null;
+    }
+
+    private static (int? input, int? output) ParseUsage(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object) return (null, null);
+        if (!root.TryGetProperty("type", out var typeProp) || typeProp.ValueKind != JsonValueKind.String) return (null, null);
+        var type = typeProp.GetString();
+
+        // message_start has usage.input_tokens (and an initial output_tokens=1 hint)
+        if (type == "message_start" &&
+            root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.Object &&
+            msg.TryGetProperty("usage", out var u1) && u1.ValueKind == JsonValueKind.Object)
+        {
+            int? input  = u1.TryGetProperty("input_tokens",  out var i) && i.ValueKind == JsonValueKind.Number ? i.GetInt32() : null;
+            int? output = u1.TryGetProperty("output_tokens", out var o) && o.ValueKind == JsonValueKind.Number ? o.GetInt32() : null;
+            return (input, output);
+        }
+        // message_delta carries cumulative output_tokens
+        if (type == "message_delta" &&
+            root.TryGetProperty("usage", out var u2) && u2.ValueKind == JsonValueKind.Object &&
+            u2.TryGetProperty("output_tokens", out var o2) && o2.ValueKind == JsonValueKind.Number)
+        {
+            return (null, o2.GetInt32());
+        }
+        return (null, null);
     }
 }
