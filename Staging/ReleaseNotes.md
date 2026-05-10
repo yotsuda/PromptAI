@@ -17,13 +17,6 @@
 - `Build.ps1` now invokes `Microsoft.PowerShell.PlatyPS` to compile MAML (`PromptAI.dll-Help.xml`) from `docs/<locale>/*.md` and deploys it next to the DLL under each locale folder.
 - New GitHub Actions workflow at `.github/workflows/release.yml` triggers on `v*.*.*` tag push and handles version-consistency check, build, MAML compilation, Authenticode signing of `PromptAI.dll`, PSGallery publish, and GitHub Release creation from this file.
 
-# Version: 0.1.1
-
-## Help system
-
-- Added MAML-based help for `Invoke-Claude`, `Invoke-GPT`, and `Invoke-Gemini`.
-- `Get-Help -Online` is supported via populated `HelpUri`.
-
 # Version: 0.1.0
 
 Initial release. `Invoke-Claude`, `Invoke-GPT`, `Invoke-Gemini` with SSE streaming.
