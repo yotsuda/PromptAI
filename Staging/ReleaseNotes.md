@@ -28,6 +28,11 @@ Existing `.Text`, `.Model`, `.Provider`, and string-conversion behavior are unch
 - All SSE parsers now guard against unexpected JSON shapes (e.g., OpenAI's final `"usage": null` chunk that previously broke chunk parsing for GPT and DeepSeek).
 - The SSE reader skips malformed chunks instead of aborting the whole stream.
 
+## Quality gate
+
+- New `Tests/` directory with xUnit unit tests (`Pricing`, `OpenAICompat`, `Claude` / `Gemini` parsers, `ImageLoader`, `AIResponse`) and Pester module-surface tests (cmdlet exports, `Get-Help` MAML, parameter validation).
+- `release.yml` now runs both test suites before signing and PSGallery publish — a tagged release will not ship if any test fails.
+
 ## Verifying the signed DLL
 
 `PromptAI.dll` is Authenticode-signed by yotsuda's self-signed certificate.

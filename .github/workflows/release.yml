@@ -57,6 +57,12 @@ jobs:
         shell: pwsh
         run: dotnet build PromptAI/PromptAI.csproj -c Release -f net8.0 --no-restore
 
+      - name: Run xUnit tests
+        shell: pwsh
+        run: |
+          dotnet test Tests/PromptAI.Tests.csproj -c Release --nologo --logger "console;verbosity=normal"
+          if ($LASTEXITCODE -ne 0) { throw 'xUnit tests failed; aborting release.' }
+
       - name: Build help XML (PlatyPS v2)
         shell: pwsh
         run: |
@@ -93,6 +99,23 @@ jobs:
           "stage=$stage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "=== Staged module contents ==="
           Get-ChildItem $stage -Recurse | Select-Object FullName
+
+      - name: Run Pester module-surface tests
+        shell: pwsh
+        env:
+          PROMPTAI_MODULE_PATH: ${{ steps.stage.outputs.stage }}
+        run: |
+          $minPester = [version]'5.0'
+          $have = Get-Module Pester -ListAvailable | Where-Object Version -ge $minPester | Select-Object -First 1
+          if (-not $have) {
+            Install-Module Pester -MinimumVersion 5.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          }
+          Import-Module Pester -MinimumVersion 5.0
+          $cfg = New-PesterConfiguration
+          $cfg.Run.Path        = 'Tests/Module'
+          $cfg.Run.Exit        = $true
+          $cfg.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $cfg
 
       - name: Probe signing secret
         id: sign_probe

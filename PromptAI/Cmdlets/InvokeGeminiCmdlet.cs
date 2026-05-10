@@ -132,7 +132,7 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
         return Encoding.UTF8.GetString(ms.ToArray());
     }
 
-    private static string? ParseDelta(JsonElement root)
+    internal static string? ParseDelta(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object) return null;
         if (!root.TryGetProperty("candidates", out var candidates)) return null;
@@ -151,7 +151,7 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
         return null;
     }
 
-    private static (int? input, int? output) ParseUsage(JsonElement root)
+    internal static (int? input, int? output) ParseUsage(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object) return (null, null);
         if (!root.TryGetProperty("usageMetadata", out var u) || u.ValueKind != JsonValueKind.Object) return (null, null);

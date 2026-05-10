@@ -125,7 +125,7 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
         return Encoding.UTF8.GetString(ms.ToArray());
     }
 
-    private static string? ParseDelta(JsonElement root)
+    internal static string? ParseDelta(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object) return null;
         if (!root.TryGetProperty("type", out var type) || type.ValueKind != JsonValueKind.String) return null;
@@ -138,7 +138,7 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
         return null;
     }
 
-    private static (int? input, int? output) ParseUsage(JsonElement root)
+    internal static (int? input, int? output) ParseUsage(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object) return (null, null);
         if (!root.TryGetProperty("type", out var typeProp) || typeProp.ValueKind != JsonValueKind.String) return (null, null);
