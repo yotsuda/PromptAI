@@ -44,7 +44,11 @@ PrivateData = @{
 
         ProjectUri = 'https://github.com/yotsuda/PromptAI'
 
-        ReleaseNotes = 'Added Invoke-Llama (-Provider Groq|Meta|Together) and Invoke-DeepSeek cmdlets.'
+        ReleaseNotes = 'PromptAI - PowerShell cmdlets for AI APIs
+
+Stream prompts to Anthropic Claude, OpenAI GPT, Google Gemini, Meta Llama (via Groq/Meta/Together), and DeepSeek from PowerShell, with real-time token-by-token output and a unified AIResponse object. Designed to compose with PowerShell.MCP for AI-to-AI workflows.
+
+Per-version release notes: https://github.com/yotsuda/PromptAI/releases'
 
     }
 
