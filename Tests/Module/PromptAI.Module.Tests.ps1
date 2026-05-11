@@ -34,7 +34,11 @@ Describe 'PromptAI module surface' {
             'Invoke-Llama',
             'Invoke-DeepSeek',
             'Compare-AI',
-            'Get-DeepSeekBalance'
+            'Get-DeepSeekBalance',
+            'Get-AIProvider',
+            'Measure-AITokens',
+            'Export-AIConversation',
+            'Import-AIConversation'
         )
 
         It "exports <_>" -ForEach $expected {
@@ -43,8 +47,8 @@ Describe 'PromptAI module surface' {
             $cmd.CommandType | Should -Be 'Cmdlet'
         }
 
-        It 'exports exactly 7 cmdlets (no surprises)' {
-            (Get-Command -Module PromptAI).Count | Should -Be 7
+        It 'exports exactly 11 cmdlets (no surprises)' {
+            (Get-Command -Module PromptAI).Count | Should -Be 11
         }
     }
 
@@ -56,7 +60,11 @@ Describe 'PromptAI module surface' {
             'Invoke-Llama',
             'Invoke-DeepSeek',
             'Compare-AI',
-            'Get-DeepSeekBalance'
+            'Get-DeepSeekBalance',
+            'Get-AIProvider',
+            'Measure-AITokens',
+            'Export-AIConversation',
+            'Import-AIConversation'
         )
 
         It '<_> has a non-empty Synopsis' -ForEach $cmdlets {
