@@ -24,7 +24,8 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
     protected override string ProviderName => Provider;
 
     protected override ApiCallResult CallAPI(string userContent)
-        => Call(Provider, userContent, SystemPrompt, Model, MaxTokens, History, Image, t => Host.UI.Write(t));
+        => Call(Provider, userContent, SystemPrompt, Model, MaxTokens, History, Image,
+                Temperature, TopP, StopSequence, Json.IsPresent, Schema, t => Host.UI.Write(t));
 
     public static ApiCallResult Call(
         string provider,
@@ -34,6 +35,11 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
         int maxTokens,
         AIResponse? history,
         string[]? images,
+        double? temperature,
+        double? topP,
+        string[]? stopSequence,
+        bool json,
+        System.Collections.Hashtable? schema,
         Action<string>? onToken)
     {
         var (envName, endpoint, defaultModel) = GetProviderConfig(provider);
@@ -44,11 +50,12 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
         var resolvedModel = string.IsNullOrEmpty(model) ? defaultModel : model;
         var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
+        var jsonText = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images,
+                                              temperature, topP, stopSequence, json, schema);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
         request.Headers.Add("Authorization", $"Bearer {apiKey}");
-        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = new StringContent(jsonText, Encoding.UTF8, "application/json");
 
         var (text, inTok, outTok) = ReadSSEStream(request, OpenAICompat.ParseDelta, OpenAICompat.ParseUsage, onToken);
         return new ApiCallResult(text, resolvedModel, inTok, outTok);

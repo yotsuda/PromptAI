@@ -91,4 +91,4 @@ One object per currency, with properties:
 
 ## RELATED LINKS
 
-- [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Invoke-DeepSeek](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md)

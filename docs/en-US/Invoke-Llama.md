@@ -21,7 +21,8 @@ Sends a prompt to a Meta Llama model via Groq, Meta's official Llama API, or Tog
 
 ```
 Invoke-Llama [-Prompt] <string> [[-SystemPrompt] <string>] [-Provider <string>] [-Model <string>]
- [-MaxTokens <int>] [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
+ [-MaxTokens <int>] [-History <AIResponse>] [-Image <string[]>] [-Temperature <double>]
+ [-TopP <double>] [-StopSequence <string[]>] [-Json] [-Schema <hashtable>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -268,6 +269,111 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Json
+
+Request a JSON-only response. Sends `response_format: {"type": "json_object"}`. Groq / Together / Meta all support this for current Llama models.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: 'False'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Schema
+
+JSON Schema (PowerShell hashtable) the response must conform to. Implies `-Json`. Sends `response_format: {"type": "json_schema", ...}`. Schema-strict support varies by sub-provider and model — Groq supports it for newer Llama models; Meta and Together vary.
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -StopSequence
+
+One or more strings that, if generated, halt the response. Sent as OpenAI-compatible `stop`.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Temperature
+
+Sampling temperature. Range varies by sub-provider; OpenAI-compat default is 0–2.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TopP
+
+Nucleus sampling cutoff. Sent as OpenAI-compatible `top_p`.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -295,11 +401,11 @@ Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.Estim
 
 ## RELATED LINKS
 
-- [Invoke-Claude](Invoke-Claude.md)
-- [Invoke-GPT](Invoke-GPT.md)
-- [Invoke-Gemini](Invoke-Gemini.md)
-- [Invoke-DeepSeek](Invoke-DeepSeek.md)
-- [Compare-AI](Compare-AI.md)
+- [Invoke-Claude](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Claude.md)
+- [Invoke-GPT](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-GPT.md)
+- [Invoke-Gemini](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Gemini.md)
+- [Invoke-DeepSeek](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md)
+- [Compare-AI](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Compare-AI.md)
 - [Groq API Documentation](https://console.groq.com/docs/api-reference)
 - [Llama API Documentation](https://llama.developer.meta.com/docs)
 - [Together AI Documentation](https://docs.together.ai/reference/chat-completions)

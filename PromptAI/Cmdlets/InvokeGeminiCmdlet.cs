@@ -21,7 +21,8 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
     protected override string ProviderName => "Google";
 
     protected override ApiCallResult CallAPI(string userContent)
-        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image, t => Host.UI.Write(t));
+        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image,
+                Temperature, TopP, StopSequence, Json.IsPresent, Schema, t => Host.UI.Write(t));
 
     public static ApiCallResult Call(
         string userContent,
@@ -30,6 +31,11 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
         int maxTokens,
         AIResponse? history,
         string[]? images,
+        double? temperature,
+        double? topP,
+        string[]? stopSequence,
+        bool json,
+        System.Collections.Hashtable? schema,
         Action<string>? onToken)
     {
         var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
@@ -38,13 +44,14 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
         var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = BuildJson(maxTokens, effectiveSystemPrompt, history, userContent, images);
+        var jsonText = BuildJson(maxTokens, effectiveSystemPrompt, history, userContent, images,
+                                 temperature, topP, stopSequence, json, schema);
 
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{resolvedModel}:streamGenerateContent?alt=sse";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Add("x-goog-api-key", apiKey);
-        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = new StringContent(jsonText, Encoding.UTF8, "application/json");
 
         var (text, inTok, outTok) = ReadSSEStream(request, ParseDelta, ParseUsage, onToken);
         return new ApiCallResult(text, resolvedModel, inTok, outTok);
@@ -52,7 +59,9 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
 
     private static string BuildJson(
         int maxTokens, string? systemPrompt,
-        AIResponse? history, string userContent, string[]? images)
+        AIResponse? history, string userContent, string[]? images,
+        double? temperature, double? topP, string[]? stopSequence,
+        bool json, System.Collections.Hashtable? schema)
     {
         using var ms = new MemoryStream();
         using (var w = new Utf8JsonWriter(ms))
@@ -120,11 +129,33 @@ public class InvokeGeminiCmdlet : AIStreamingCmdletBase
 
             w.WriteEndArray();
 
-            if (maxTokens != 4096)
+            // generationConfig only emitted if any non-default knob is set.
+            bool hasGenConfig = maxTokens != 4096 || temperature.HasValue || topP.HasValue
+                                || (stopSequence != null && stopSequence.Length > 0)
+                                || json || schema != null;
+            if (hasGenConfig)
             {
                 w.WritePropertyName("generationConfig");
                 w.WriteStartObject();
-                w.WriteNumber("maxOutputTokens", maxTokens);
+                if (maxTokens != 4096)        w.WriteNumber("maxOutputTokens", maxTokens);
+                if (temperature.HasValue)     w.WriteNumber("temperature",     temperature.Value);
+                if (topP.HasValue)            w.WriteNumber("topP",            topP.Value);
+                if (stopSequence != null && stopSequence.Length > 0)
+                {
+                    w.WritePropertyName("stopSequences");
+                    w.WriteStartArray();
+                    foreach (var s in stopSequence) w.WriteStringValue(s);
+                    w.WriteEndArray();
+                }
+                if (json || schema != null)
+                {
+                    w.WriteString("responseMimeType", "application/json");
+                    if (schema != null)
+                    {
+                        w.WritePropertyName("responseSchema");
+                        JsonHelpers.WriteHashtable(w, schema);
+                    }
+                }
                 w.WriteEndObject();
             }
 

@@ -2,7 +2,7 @@
 
 RootModule = 'PromptAI.dll'
 
-ModuleVersion = '0.1.3'
+ModuleVersion = '0.1.4'
 
 CompatiblePSEditions = @('Core')
 
@@ -27,7 +27,11 @@ CmdletsToExport = @(
 'Invoke-Llama',
 'Invoke-DeepSeek',
 'Compare-AI',
-'Get-DeepSeekBalance'
+'Get-DeepSeekBalance',
+'Get-AIProvider',
+'Measure-AITokens',
+'Export-AIConversation',
+'Import-AIConversation'
 )
 
 FunctionsToExport = @()

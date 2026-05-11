@@ -19,6 +19,30 @@
       </CustomControl>
     </View>
     <View>
+      <Name>AIProvider</Name>
+      <ViewSelectedBy>
+        <TypeName>PromptAI.Cmdlets.AIProvider</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label></TableColumnHeader>
+          <TableColumnHeader><Label>EnvVar</Label></TableColumnHeader>
+          <TableColumnHeader><Label>IsConfigured</Label></TableColumnHeader>
+          <TableColumnHeader><Label>DefaultModel</Label></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>EnvVar</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>IsConfigured</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>DefaultModel</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
       <Name>DeepSeekBalance</Name>
       <ViewSelectedBy>
         <TypeName>PromptAI.Cmdlets.DeepSeekBalance</TypeName>

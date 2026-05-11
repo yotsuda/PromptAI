@@ -21,7 +21,8 @@ Sends a prompt to the DeepSeek API and returns the response with real-time strea
 
 ```
 Invoke-DeepSeek [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [-History <AIResponse>] [<CommonParameters>]
+ [-History <AIResponse>] [-Temperature <double>] [-TopP <double>] [-StopSequence <string[]>]
+ [-Json] [-Schema <hashtable>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -212,6 +213,111 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Json
+
+Request a JSON-only response. Sends `response_format: {"type": "json_object"}`.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: 'False'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Schema
+
+JSON Schema (PowerShell hashtable) the response must conform to. Implies `-Json`. DeepSeek's strict `json_schema` support varies by model, so this falls back to schema-in-system-prompt + `json_object` mode (best-effort, not guaranteed strict).
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -StopSequence
+
+One or more strings that, if generated, halt the response. Sent as OpenAI-compatible `stop`.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Temperature
+
+Sampling temperature (DeepSeek valid range 0–2). Lower = more deterministic, higher = more creative.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TopP
+
+Nucleus sampling cutoff. Sent as OpenAI-compatible `top_p`.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -240,10 +346,10 @@ Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.Estim
 
 ## RELATED LINKS
 
-- [Invoke-Claude](Invoke-Claude.md)
-- [Invoke-GPT](Invoke-GPT.md)
-- [Invoke-Gemini](Invoke-Gemini.md)
-- [Invoke-Llama](Invoke-Llama.md)
-- [Compare-AI](Compare-AI.md)
-- [Get-DeepSeekBalance](Get-DeepSeekBalance.md)
+- [Invoke-Claude](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Claude.md)
+- [Invoke-GPT](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-GPT.md)
+- [Invoke-Gemini](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Gemini.md)
+- [Invoke-Llama](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Llama.md)
+- [Compare-AI](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Compare-AI.md)
+- [Get-DeepSeekBalance](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Get-DeepSeekBalance.md)
 - [DeepSeek API Documentation](https://api-docs.deepseek.com/)

@@ -61,6 +61,46 @@ public abstract class AIStreamingCmdletBase : PSCmdlet
     [Parameter]
     public string[]? Image { get; set; }
 
+    /// <summary>
+    /// Sampling temperature. Lower = more deterministic, higher = more creative.
+    /// Each provider defines its own valid range; check the provider's docs.
+    /// Pass nothing to use the provider's default.
+    /// </summary>
+    [Parameter]
+    public double? Temperature { get; set; }
+
+    /// <summary>
+    /// Nucleus sampling cutoff. Pass nothing to use the provider's default.
+    /// </summary>
+    [Parameter]
+    public double? TopP { get; set; }
+
+    /// <summary>
+    /// One or more strings that, if generated, halt the response.
+    /// Maps to provider-specific fields (Anthropic stop_sequences, OpenAI stop,
+    /// Gemini stopSequences).
+    /// </summary>
+    [Parameter]
+    public string[]? StopSequence { get; set; }
+
+    /// <summary>
+    /// Request a JSON-only response. Provider mapping:
+    /// OpenAI/Llama/DeepSeek use response_format=json_object; Gemini uses
+    /// responseMimeType=application/json; Claude uses an assistant-message
+    /// prefill of "{". Pass -Schema instead for strict structured output.
+    /// </summary>
+    [Parameter]
+    public SwitchParameter Json { get; set; }
+
+    /// <summary>
+    /// JSON schema (as a Hashtable) the response must conform to. Implies -Json.
+    /// OpenAI/Llama use response_format json_schema (strict); Gemini uses
+    /// responseSchema; Claude/DeepSeek fall back to schema-in-system-prompt
+    /// (best-effort, not strict).
+    /// </summary>
+    [Parameter]
+    public System.Collections.Hashtable? Schema { get; set; }
+
     /// <summary>Provider name for AIResponse metadata (e.g., "Anthropic", "OpenAI").</summary>
     protected abstract string ProviderName { get; }
 

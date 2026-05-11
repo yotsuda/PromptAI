@@ -14,7 +14,9 @@ internal static class OpenAICompat
     /// <summary>Builds the chat completions request JSON.</summary>
     public static string BuildJson(
         string model, int maxTokens, string? systemPrompt,
-        AIResponse? history, string userContent, string[]? images)
+        AIResponse? history, string userContent, string[]? images,
+        double? temperature, double? topP, string[]? stopSequence,
+        bool json, System.Collections.Hashtable? schema)
     {
         using var ms = new MemoryStream();
         using (var w = new Utf8JsonWriter(ms))
@@ -29,6 +31,40 @@ internal static class OpenAICompat
             w.WriteStartObject();
             w.WriteBoolean("include_usage", true);
             w.WriteEndObject();
+
+            if (temperature.HasValue) w.WriteNumber("temperature", temperature.Value);
+            if (topP.HasValue)        w.WriteNumber("top_p", topP.Value);
+            if (stopSequence != null && stopSequence.Length > 0)
+            {
+                w.WritePropertyName("stop");
+                w.WriteStartArray();
+                foreach (var s in stopSequence) w.WriteStringValue(s);
+                w.WriteEndArray();
+            }
+
+            // response_format: json_schema (strict) when -Schema is set,
+            // json_object when -Json is set without a schema.
+            if (schema != null)
+            {
+                w.WritePropertyName("response_format");
+                w.WriteStartObject();
+                w.WriteString("type", "json_schema");
+                w.WritePropertyName("json_schema");
+                w.WriteStartObject();
+                w.WriteString("name", "schema");
+                w.WriteBoolean("strict", true);
+                w.WritePropertyName("schema");
+                JsonHelpers.WriteHashtable(w, schema);
+                w.WriteEndObject();
+                w.WriteEndObject();
+            }
+            else if (json)
+            {
+                w.WritePropertyName("response_format");
+                w.WriteStartObject();
+                w.WriteString("type", "json_object");
+                w.WriteEndObject();
+            }
 
             w.WritePropertyName("messages");
             w.WriteStartArray();

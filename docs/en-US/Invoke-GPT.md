@@ -21,7 +21,8 @@ Sends a prompt to the OpenAI API and returns the response with real-time streami
 
 ```
 Invoke-GPT [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
+ [-History <AIResponse>] [-Image <string[]>] [-Temperature <double>] [-TopP <double>]
+ [-StopSequence <string[]>] [-Json] [-Schema <hashtable>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -240,6 +241,111 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Json
+
+Request a JSON-only response. Sends `response_format: {"type": "json_object"}`. The OpenAI API requires the word "JSON" to appear in the prompt or system prompt when this is set.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: 'False'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Schema
+
+JSON Schema (PowerShell hashtable) the response must conform to. Implies `-Json`. Sends `response_format: {"type": "json_schema", "json_schema": {strict: true, schema: ...}}`. Use a model that supports strict schema mode (gpt-4o, gpt-4o-mini, gpt-4.1).
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -StopSequence
+
+One or more strings that, if generated, halt the response. Sent as OpenAI's `stop`.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Temperature
+
+Sampling temperature (OpenAI valid range 0–2). Lower = more deterministic, higher = more creative.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TopP
+
+Nucleus sampling cutoff. Pass nothing to use the model's default.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -268,9 +374,9 @@ Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.Estim
 
 ## RELATED LINKS
 
-- [Invoke-Claude](Invoke-Claude.md)
-- [Invoke-Gemini](Invoke-Gemini.md)
-- [Invoke-Llama](Invoke-Llama.md)
-- [Invoke-DeepSeek](Invoke-DeepSeek.md)
-- [Compare-AI](Compare-AI.md)
+- [Invoke-Claude](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Claude.md)
+- [Invoke-Gemini](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Gemini.md)
+- [Invoke-Llama](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Llama.md)
+- [Invoke-DeepSeek](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md)
+- [Compare-AI](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Compare-AI.md)
 - [OpenAI API Documentation](https://platform.openai.com/docs/api-reference/chat)

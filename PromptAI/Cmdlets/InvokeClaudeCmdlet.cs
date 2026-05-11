@@ -21,7 +21,8 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
     protected override string ProviderName => "Anthropic";
 
     protected override ApiCallResult CallAPI(string userContent)
-        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image, t => Host.UI.Write(t));
+        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image,
+                Temperature, TopP, StopSequence, Json.IsPresent, Schema, t => Host.UI.Write(t));
 
     /// <summary>Static helper used by the cmdlet and by Compare-AI.</summary>
     public static ApiCallResult Call(
@@ -31,6 +32,11 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
         int maxTokens,
         AIResponse? history,
         string[]? images,
+        double? temperature,
+        double? topP,
+        string[]? stopSequence,
+        bool json,
+        System.Collections.Hashtable? schema,
         Action<string>? onToken)
     {
         var apiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")
@@ -39,20 +45,38 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
         var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
+        // Anthropic has no native response_format. Best-effort: append schema to
+        // system prompt and (below) prefill assistant with "{" so generation
+        // starts as JSON.
+        if (schema != null)
+        {
+            var schemaJson = JsonHelpers.SerializeHashtable(schema);
+            var note = $"Respond with valid JSON only, conforming to this schema: {schemaJson}";
+            effectiveSystemPrompt = string.IsNullOrEmpty(effectiveSystemPrompt) ? note : effectiveSystemPrompt + "\n\n" + note;
+        }
+
+        var jsonText = BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images,
+                                 temperature, topP, stopSequence, json || schema != null);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
         request.Headers.Add("x-api-key", apiKey);
         request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = new StringContent(jsonText, Encoding.UTF8, "application/json");
 
         var (text, inTok, outTok) = ReadSSEStream(request, ParseDelta, ParseUsage, onToken);
+
+        // The "{" prefilled by BuildJson is not echoed back by the API, so re-attach
+        // it to the result so callers can ConvertFrom-Json $r.Text without surprises.
+        if (json || schema != null) text = "{" + text;
+
         return new ApiCallResult(text, resolvedModel, inTok, outTok);
     }
 
     private static string BuildJson(
         string model, int maxTokens, string? systemPrompt,
-        AIResponse? history, string userContent, string[]? images)
+        AIResponse? history, string userContent, string[]? images,
+        double? temperature, double? topP, string[]? stopSequence,
+        bool jsonPrefill)
     {
         using var ms = new MemoryStream();
         using (var w = new Utf8JsonWriter(ms))
@@ -64,6 +88,16 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
 
             if (!string.IsNullOrEmpty(systemPrompt))
                 w.WriteString("system", systemPrompt);
+
+            if (temperature.HasValue) w.WriteNumber("temperature", temperature.Value);
+            if (topP.HasValue)        w.WriteNumber("top_p", topP.Value);
+            if (stopSequence != null && stopSequence.Length > 0)
+            {
+                w.WritePropertyName("stop_sequences");
+                w.WriteStartArray();
+                foreach (var s in stopSequence) w.WriteStringValue(s);
+                w.WriteEndArray();
+            }
 
             w.WritePropertyName("messages");
             w.WriteStartArray();
@@ -119,6 +153,17 @@ public class InvokeClaudeCmdlet : AIStreamingCmdletBase
                 w.WriteString("content", userContent);
             }
             w.WriteEndObject();
+
+            // Prefill the assistant turn with "{" so generation begins as JSON.
+            // Anthropic appends to the prefill, so the response stream omits "{"
+            // — the caller re-attaches it after reading the stream.
+            if (jsonPrefill)
+            {
+                w.WriteStartObject();
+                w.WriteString("role", "assistant");
+                w.WriteString("content", "{");
+                w.WriteEndObject();
+            }
 
             w.WriteEndArray();
             w.WriteEndObject();

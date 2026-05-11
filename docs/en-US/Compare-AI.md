@@ -186,8 +186,8 @@ One `AIResponse` per provider queried. Failed calls surface as an `AIResponse` w
 
 ## RELATED LINKS
 
-- [Invoke-Claude](Invoke-Claude.md)
-- [Invoke-GPT](Invoke-GPT.md)
-- [Invoke-Gemini](Invoke-Gemini.md)
-- [Invoke-Llama](Invoke-Llama.md)
-- [Invoke-DeepSeek](Invoke-DeepSeek.md)
+- [Invoke-Claude](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Claude.md)
+- [Invoke-GPT](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-GPT.md)
+- [Invoke-Gemini](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Gemini.md)
+- [Invoke-Llama](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Llama.md)
+- [Invoke-DeepSeek](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md)

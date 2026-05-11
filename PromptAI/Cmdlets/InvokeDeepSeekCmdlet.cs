@@ -22,7 +22,8 @@ public class InvokeDeepSeekCmdlet : AIStreamingCmdletBase
     protected override string ProviderName => "DeepSeek";
 
     protected override ApiCallResult CallAPI(string userContent)
-        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image, t => Host.UI.Write(t));
+        => Call(userContent, SystemPrompt, Model, MaxTokens, History, Image,
+                Temperature, TopP, StopSequence, Json.IsPresent, Schema, t => Host.UI.Write(t));
 
     public static ApiCallResult Call(
         string userContent,
@@ -31,6 +32,11 @@ public class InvokeDeepSeekCmdlet : AIStreamingCmdletBase
         int maxTokens,
         AIResponse? history,
         string[]? images,
+        double? temperature,
+        double? topP,
+        string[]? stopSequence,
+        bool json,
+        System.Collections.Hashtable? schema,
         Action<string>? onToken)
     {
         var apiKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY")
@@ -39,11 +45,22 @@ public class InvokeDeepSeekCmdlet : AIStreamingCmdletBase
         var resolvedModel = string.IsNullOrEmpty(model) ? DefaultModel : model;
         var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var json = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images);
+        // DeepSeek supports response_format json_object but not strict json_schema
+        // (varies by model). When -Schema is supplied we fall back to instructing
+        // the schema in the system prompt + json_object mode for best-effort.
+        if (schema != null)
+        {
+            var schemaJson = JsonHelpers.SerializeHashtable(schema);
+            var note = $"Respond with valid JSON only, conforming to this schema: {schemaJson}";
+            effectiveSystemPrompt = string.IsNullOrEmpty(effectiveSystemPrompt) ? note : effectiveSystemPrompt + "\n\n" + note;
+        }
+
+        var jsonText = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images,
+                                              temperature, topP, stopSequence, json || schema != null, schema: null);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.deepseek.com/chat/completions");
         request.Headers.Add("Authorization", $"Bearer {apiKey}");
-        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = new StringContent(jsonText, Encoding.UTF8, "application/json");
 
         var (text, inTok, outTok) = ReadSSEStream(request, OpenAICompat.ParseDelta, OpenAICompat.ParseUsage, onToken);
         return new ApiCallResult(text, resolvedModel, inTok, outTok);

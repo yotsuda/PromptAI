@@ -21,7 +21,8 @@ Sends a prompt to the Google Gemini API and returns the response with real-time 
 
 ```
 Invoke-Gemini [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
- [-History <AIResponse>] [-Image <string[]>] [<CommonParameters>]
+ [-History <AIResponse>] [-Image <string[]>] [-Temperature <double>] [-TopP <double>]
+ [-StopSequence <string[]>] [-Json] [-Schema <hashtable>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -242,6 +243,111 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Json
+
+Request a JSON-only response. Sends `responseMimeType: "application/json"` in `generationConfig`.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: 'False'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Schema
+
+JSON Schema (PowerShell hashtable) the response must conform to. Implies `-Json`. Sent as `responseSchema` (Gemini accepts an OpenAPI-3 subset). All current Gemini models support this.
+
+```yaml
+Type: System.Collections.Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -StopSequence
+
+One or more strings that, if generated, halt the response. Sent as Gemini's `stopSequences`.
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Temperature
+
+Sampling temperature (Gemini valid range 0–2). Lower = more deterministic, higher = more creative.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TopP
+
+Nucleus sampling cutoff. Sent as Gemini's `topP`. Pass nothing to use the model's default.
+
+```yaml
+Type: System.Nullable`1[[System.Double]]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -269,9 +375,9 @@ Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.Estim
 
 ## RELATED LINKS
 
-- [Invoke-Claude](Invoke-Claude.md)
-- [Invoke-GPT](Invoke-GPT.md)
-- [Invoke-Llama](Invoke-Llama.md)
-- [Invoke-DeepSeek](Invoke-DeepSeek.md)
-- [Compare-AI](Compare-AI.md)
+- [Invoke-Claude](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Claude.md)
+- [Invoke-GPT](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-GPT.md)
+- [Invoke-Llama](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-Llama.md)
+- [Invoke-DeepSeek](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Invoke-DeepSeek.md)
+- [Compare-AI](https://github.com/yotsuda/PromptAI/blob/master/docs/en-US/Compare-AI.md)
 - [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)

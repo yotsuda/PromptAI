@@ -1,3 +1,21 @@
+# Version: 0.1.4
+
+## New cmdlets
+
+- **`Get-AIProvider`** — lists every provider this module knows about, whether the API key env var is set, and the default model. No network calls. Useful as a pre-flight check before sharing a script.
+- **`Measure-AITokens`** — fast local token-count approximation (no network, no NuGet dep). ASCII chars / 4 + CJK chars / 2 + other / 3, rounded up. Documented as approximate; real tokenizers will disagree by 10–50%. `-Detailed` shows per-character-class breakdown.
+- **`Export-AIConversation`** / **`Import-AIConversation`** — round-trip an `AIResponse` (which carries the full conversation in `.Turns`) to a JSON file, so a chat can resume across PowerShell sessions.
+
+## New parameters on every Invoke-X
+
+- **`-Temperature`**, **`-TopP`**, **`-StopSequence`** — generation control. Mapped to provider-specific fields (Anthropic `top_p` / `stop_sequences`, OpenAI `top_p` / `stop`, Gemini `topP` / `stopSequences`).
+- **`-Json`** — request a JSON-only response. OpenAI/Llama/DeepSeek use `response_format=json_object`; Gemini uses `responseMimeType=application/json`; Claude uses an assistant-message prefill of `{`.
+- **`-Schema <Hashtable>`** — pass a JSON Schema (as a PowerShell hashtable). OpenAI/Llama use `response_format=json_schema` strict mode; Gemini uses `responseSchema`. Claude/DeepSeek fall back to schema-in-system-prompt + JSON mode (best-effort, not strict).
+
+## Custom output views
+
+- `Get-AIProvider` and `Get-DeepSeekBalance` (the latter shipped in 0.1.3 but the view is the same shape) emit `PSObject` instances with custom TypeNames so a dedicated TableControl in `PromptAI.Format.ps1xml` formats them with auto-width columns.
+
 # Version: 0.1.3
 
 ## New cmdlets
