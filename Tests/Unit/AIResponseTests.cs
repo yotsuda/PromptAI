@@ -84,6 +84,31 @@ public class AIResponseTests
     }
 
     [Fact]
+    public void Constructor_ToolCallsDefaultsToEmptyList()
+    {
+        // ToolCalls is non-nullable on AIResponse — empty list lets callers
+        // do `$r.ToolCalls.Count` without first checking for null.
+        var r = new AIResponse("x", "m", "p");
+        Assert.NotNull(r.ToolCalls);
+        Assert.Empty(r.ToolCalls);
+    }
+
+    [Fact]
+    public void Constructor_ToolCallsRoundTrip()
+    {
+        var calls = new[]
+        {
+            new ToolCallRecord("calc", """{"expression":"1+1"}""", "2"),
+            new ToolCallRecord("boom", "{}", "", "tool exploded"),
+        };
+        var r = new AIResponse("done", "m", "p", toolCalls: calls);
+        Assert.Equal(2, r.ToolCalls.Count);
+        Assert.Equal("calc", r.ToolCalls[0].Name);
+        Assert.Null(r.ToolCalls[0].Error);
+        Assert.Equal("tool exploded", r.ToolCalls[1].Error);
+    }
+
+    [Fact]
     public void Constructor_SystemPromptRoundTrip()
     {
         var r = new AIResponse("x", "m", "p", systemPrompt: "you are a tutor");

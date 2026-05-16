@@ -109,4 +109,48 @@ Describe 'PromptAI module surface' {
                 Should -Contain 'PromptAI.Cmdlets.AIResponse'
         }
     }
+
+    Context '-AIScriptPolicy on every Invoke-X' {
+        # All 5 Invoke-X cmdlets must expose -AIScriptPolicy with the same
+        # ValidateSet and default. If someone removes the parameter from one
+        # cmdlet by mistake, this test catches it before release.
+        $invokers = 'Invoke-Claude','Invoke-GPT','Invoke-Gemini','Invoke-Llama','Invoke-DeepSeek'
+
+        It '<_> exposes -AIScriptPolicy' -ForEach $invokers {
+            $param = (Get-Command $_).Parameters['AIScriptPolicy']
+            $param | Should -Not -BeNullOrEmpty
+            $param.ParameterType | Should -Be ([string])
+        }
+
+        It '<_> -AIScriptPolicy ValidateSet covers all 4 modes' -ForEach $invokers {
+            $vs = (Get-Command $_).Parameters['AIScriptPolicy'].Attributes |
+                  Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
+            $vs | Should -Not -BeNullOrEmpty
+            $vs.ValidValues | Should -Be @('Prompt','AlwaysApprove','AlwaysWhatIf','Off')
+        }
+
+        It '<_> rejects an unknown AIScriptPolicy value' -ForEach $invokers {
+            $cmd = $_
+            { & $cmd -Prompt 'x' -AIScriptPolicy 'Bogus' -ErrorAction Stop } |
+                Should -Throw -ErrorId "ParameterArgumentValidationError,PromptAI.Cmdlets.$($cmd.Replace('-',''))Cmdlet"
+        }
+
+        It '<_> has AIScriptPolicy help describing all four modes' -ForEach $invokers {
+            $help = Get-Help $_ -Parameter AIScriptPolicy -ErrorAction SilentlyContinue
+            $help | Should -Not -BeNullOrEmpty
+            $text = ($help.description | Out-String)
+            foreach ($mode in 'Prompt','AlwaysApprove','AlwaysWhatIf','Off') {
+                $text | Should -Match $mode
+            }
+        }
+    }
+
+    Context 'AIScriptContext type is exported' {
+        It 'exposes AIScriptContext for advanced callers' {
+            # External callers that want to bypass the cmdlet-level policy setup
+            # need to be able to instantiate AIScriptContext themselves.
+            $t = 'PromptAI.Cmdlets.AIScriptContext' -as [type]
+            $t | Should -Not -BeNullOrEmpty
+        }
+    }
 }

@@ -1,4 +1,5 @@
 using System.Management.Automation;
+using System.Net.Http;
 using System.Text;
 
 namespace PromptAI.Cmdlets;
@@ -7,7 +8,7 @@ namespace PromptAI.Cmdlets;
 /// Sends a prompt to a Llama model via Groq (default), Meta's official Llama API,
 /// or Together AI. All three are OpenAI-compatible — only the URL, env var, and
 /// default model differ. Supports multi-turn (-History), image input (-Image —
-/// vision-capable models only), and reports token usage.
+/// vision-capable models only), tool calling (-Tool), and reports token usage.
 /// </summary>
 [Cmdlet(VerbsLifecycle.Invoke, "Llama")]
 [OutputType(typeof(AIResponse))]
@@ -25,7 +26,30 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
 
     protected override ApiCallResult CallAPI(string userContent)
         => Call(Provider, userContent, SystemPrompt, Model, MaxTokens, History, Image,
-                Temperature, TopP, StopSequence, Json.IsPresent, Schema, t => Host.UI.Write(t));
+                Temperature, TopP, StopSequence, Json.IsPresent, Schema, Tool, MaxToolIterations,
+                BuildAIScriptContext(),
+                t => Host.UI.Write(t));
+
+    /// <summary>Compat overload for Compare-AI; exec_powershell disabled.</summary>
+    public static ApiCallResult Call(
+        string provider,
+        string userContent,
+        string? systemPrompt,
+        string? model,
+        int maxTokens,
+        AIResponse? history,
+        string[]? images,
+        double? temperature,
+        double? topP,
+        string[]? stopSequence,
+        bool json,
+        System.Collections.Hashtable? schema,
+        System.Collections.Hashtable[]? toolsRaw,
+        int maxToolIterations,
+        Action<string>? onToken)
+        => Call(provider, userContent, systemPrompt, model, maxTokens, history, images,
+                temperature, topP, stopSequence, json, schema, toolsRaw, maxToolIterations,
+                scriptContext: null, onToken);
 
     public static ApiCallResult Call(
         string provider,
@@ -40,6 +64,9 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
         string[]? stopSequence,
         bool json,
         System.Collections.Hashtable? schema,
+        System.Collections.Hashtable[]? toolsRaw,
+        int maxToolIterations,
+        AIScriptContext? scriptContext,
         Action<string>? onToken)
     {
         var (envName, endpoint, defaultModel) = GetProviderConfig(provider);
@@ -50,15 +77,18 @@ public class InvokeLlamaCmdlet : AIStreamingCmdletBase
         var resolvedModel = string.IsNullOrEmpty(model) ? defaultModel : model;
         var effectiveSystemPrompt = systemPrompt ?? history?.SystemPrompt;
 
-        var jsonText = OpenAICompat.BuildJson(resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images,
-                                              temperature, topP, stopSequence, json, schema);
+        HttpRequestMessage MakeRequest(string body)
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            req.Headers.Add("Authorization", $"Bearer {apiKey}");
+            req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            return req;
+        }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Add("Authorization", $"Bearer {apiKey}");
-        request.Content = new StringContent(jsonText, Encoding.UTF8, "application/json");
-
-        var (text, inTok, outTok) = ReadSSEStream(request, OpenAICompat.ParseDelta, OpenAICompat.ParseUsage, onToken);
-        return new ApiCallResult(text, resolvedModel, inTok, outTok);
+        return OpenAICompat.CallWithTools(
+            resolvedModel, maxTokens, effectiveSystemPrompt, history, userContent, images,
+            temperature, topP, stopSequence, json, schema, toolsRaw, maxToolIterations,
+            scriptContext, MakeRequest, onToken);
     }
 
     private static (string envName, string endpoint, string defaultModel) GetProviderConfig(string provider) => provider switch

@@ -41,6 +41,15 @@ public class AIResponse
     /// </summary>
     public string? SystemPrompt { get; }
 
+    /// <summary>
+    /// Tool calls executed during this turn, in the order the model issued them.
+    /// Empty when -Tool was not supplied or the model did not invoke any tool.
+    /// Each record carries the tool name, the arguments the model produced
+    /// (as JSON), and either the scriptblock's stringified result or the
+    /// error message that was returned to the model.
+    /// </summary>
+    public IReadOnlyList<ToolCallRecord> ToolCalls { get; }
+
     public AIResponse(
         string text,
         string model,
@@ -50,7 +59,8 @@ public class AIResponse
         decimal? estimatedCostUSD = null,
         TimeSpan duration = default,
         IReadOnlyList<ConversationTurn>? turns = null,
-        string? systemPrompt = null)
+        string? systemPrompt = null,
+        IReadOnlyList<ToolCallRecord>? toolCalls = null)
     {
         Text = text;
         Model = model;
@@ -61,6 +71,7 @@ public class AIResponse
         Duration = duration;
         Turns = turns ?? Array.Empty<ConversationTurn>();
         SystemPrompt = systemPrompt;
+        ToolCalls = toolCalls ?? Array.Empty<ToolCallRecord>();
     }
 
     public override string ToString() => Text;
@@ -75,3 +86,11 @@ public class AIResponse
 /// ImagePaths is non-null only for user turns that included image input.
 /// </summary>
 public record ConversationTurn(string Role, string Content, string[]? ImagePaths = null);
+
+/// <summary>
+/// Records one tool invocation. Arguments is the JSON the model produced for
+/// the tool call. Result is the scriptblock's stringified return value when
+/// Error is null, or empty when the tool threw — in that case Error contains
+/// the message that was surfaced to the model as the tool result.
+/// </summary>
+public record ToolCallRecord(string Name, string Arguments, string Result, string? Error = null);

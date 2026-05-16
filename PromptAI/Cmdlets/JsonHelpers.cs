@@ -65,4 +65,40 @@ internal static class JsonHelpers
             default:                   w.WriteStringValue(v.ToString()); break;
         }
     }
+
+    /// <summary>
+    /// Converts a JSON object string into a PowerShell Hashtable so a tool
+    /// scriptblock can address arguments as `$args[0].propName`. Nested
+    /// objects become nested Hashtables; arrays become object arrays. Used by
+    /// every provider's tool-call execution path. Empty / whitespace input
+    /// is treated as an empty object — some models emit no arguments for
+    /// no-arg tools.
+    /// </summary>
+    public static Hashtable JsonObjectToHashtable(string json)
+    {
+        var trimmed = string.IsNullOrWhiteSpace(json) ? "{}" : json;
+        using var doc = JsonDocument.Parse(trimmed);
+        return ElementToHashtable(doc.RootElement);
+    }
+
+    private static Hashtable ElementToHashtable(JsonElement el)
+    {
+        var ht = new Hashtable();
+        if (el.ValueKind != JsonValueKind.Object) return ht;
+        foreach (var p in el.EnumerateObject())
+            ht[p.Name] = ElementToObject(p.Value);
+        return ht;
+    }
+
+    private static object? ElementToObject(JsonElement v) => v.ValueKind switch
+    {
+        JsonValueKind.String => v.GetString(),
+        JsonValueKind.Number => v.TryGetInt64(out var i) ? (object)i : v.GetDouble(),
+        JsonValueKind.True   => true,
+        JsonValueKind.False  => false,
+        JsonValueKind.Null   => null,
+        JsonValueKind.Object => ElementToHashtable(v),
+        JsonValueKind.Array  => v.EnumerateArray().Select(ElementToObject).ToArray(),
+        _ => null,
+    };
 }

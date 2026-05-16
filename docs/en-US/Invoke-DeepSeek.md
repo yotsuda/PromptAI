@@ -22,7 +22,8 @@ Sends a prompt to the DeepSeek API and returns the response with real-time strea
 ```
 Invoke-DeepSeek [-Prompt] <string> [[-SystemPrompt] <string>] [-Model <string>] [-MaxTokens <int>]
  [-History <AIResponse>] [-Temperature <double>] [-TopP <double>] [-StopSequence <string[]>]
- [-Json] [-Schema <hashtable>] [<CommonParameters>]
+ [-Json] [-Schema <hashtable>] [-Tool <hashtable[]>] [-MaxToolIterations <int>]
+ [-AIScriptPolicy <string>] [<CommonParameters>]
 ```
 
 ## ALIASES
@@ -318,6 +319,75 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Tool
+
+One or more tool declarations the model may invoke. Each hashtable must contain `Name` (string), `Description` (string), `Parameters` (Hashtable — a JSON Schema describing the tool arguments), and `Run` (ScriptBlock — receives the parsed arguments as a Hashtable in `$args[0]` and returns the result, which is stringified and sent back to the model). When the model issues a tool call, the scriptblock runs and its result is fed back; the model may chain multiple tool calls. Mutually exclusive with `-Schema`. The full sequence of tool invocations is returned on the `AIResponse.ToolCalls` property. Maps to OpenAI-compatible `tool_calls`; DeepSeek reasoner models emit chain-of-thought which the cmdlet captures and replays across iterations automatically.
+
+```yaml
+Type: System.Collections.Hashtable[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -MaxToolIterations
+
+Maximum number of tool-execution rounds per call. The model issues a batch of tool calls, the cmdlet executes them and feeds the results back, and the model decides whether to call more. This cap stops a runaway loop; raise it for genuinely long agent tasks. Default 10.
+
+```yaml
+Type: System.Int32
+DefaultValue: '10'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -AIScriptPolicy
+
+Controls whether the AI may write and execute ad-hoc PowerShell via the implicit `exec_powershell` tool. Read-only scripts always auto-execute (no prompt). State-modifying scripts get a `-WhatIf` preview and require explicit approval (Yes/No/Edit/Quit) in the default `Prompt` mode. Detection uses static AST analysis: `Get-*`, `Select-*`, `Measure-*` style cmdlets are read-only; `Remove-*`, native exes, `.NET` method invocations, redirections, `Invoke-Expression`, and non-GET HTTP calls all trigger approval.
+
+Modes: `Prompt` (default) — WhatIf preview + interactive approval; `AlwaysApprove` — execute everything (CI / trusted scripts); `AlwaysWhatIf` — never execute for real (exploration / dry-run); `Off` — do not expose `exec_powershell`; AI is restricted to tools passed via `-Tool`.
+
+```yaml
+Type: System.String
+DefaultValue: 'Prompt'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- Prompt
+- AlwaysApprove
+- AlwaysWhatIf
+- Off
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -335,7 +405,7 @@ Prompt text. Multiple strings from the pipeline are joined with newlines.
 
 ### PromptAI.Cmdlets.AIResponse
 
-Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort), `.Duration`, and `.Turns` (full conversation including this exchange — pass back as `-History` to continue). Supports implicit conversion to string via `ToString()`.
+Carries `.Text`, `.Model`, `.Provider`, `.InputTokens`, `.OutputTokens`, `.EstimatedCostUSD` (best-effort), `.Duration`, `.Turns` (full conversation including this exchange — pass back as `-History` to continue), and `.ToolCalls` (each invocation the model made during this turn: `Name`, `Arguments` JSON, `Result`, optional `Error`). Supports implicit conversion to string via `ToString()`.
 
 ## NOTES
 

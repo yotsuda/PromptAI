@@ -8,6 +8,57 @@ namespace PromptAI.Tests.Unit;
 public class JsonHelpersTests
 {
     [Fact]
+    public void JsonObjectToHashtable_FlatObject()
+    {
+        var ht = JsonHelpers.JsonObjectToHashtable("""{"city":"Tokyo","count":5,"hot":true}""");
+        Assert.Equal("Tokyo", ht["city"]);
+        Assert.Equal(5L, ht["count"]);     // Int64 by default for non-decimal numbers
+        Assert.Equal(true, ht["hot"]);
+    }
+
+    [Fact]
+    public void JsonObjectToHashtable_NestedObjectBecomesNestedHashtable()
+    {
+        var ht = JsonHelpers.JsonObjectToHashtable("""{"a":{"b":{"c":"deep"}}}""");
+        var a = Assert.IsType<Hashtable>(ht["a"]);
+        var b = Assert.IsType<Hashtable>(a["b"]);
+        Assert.Equal("deep", b["c"]);
+    }
+
+    [Fact]
+    public void JsonObjectToHashtable_ArrayBecomesObjectArray()
+    {
+        var ht = JsonHelpers.JsonObjectToHashtable("""{"tags":["a","b","c"]}""");
+        var arr = Assert.IsType<object?[]>(ht["tags"]);
+        Assert.Equal(new object?[] { "a", "b", "c" }, arr);
+    }
+
+    [Fact]
+    public void JsonObjectToHashtable_EmptyOrWhitespaceTreatedAsEmptyObject()
+    {
+        // Models occasionally emit no arguments for no-arg tools — we should
+        // not throw in that case.
+        Assert.Empty(JsonHelpers.JsonObjectToHashtable(""));
+        Assert.Empty(JsonHelpers.JsonObjectToHashtable("   "));
+        Assert.Empty(JsonHelpers.JsonObjectToHashtable("{}"));
+    }
+
+    [Fact]
+    public void JsonObjectToHashtable_DoubleBecomesDouble()
+    {
+        var ht = JsonHelpers.JsonObjectToHashtable("""{"temp":22.5}""");
+        Assert.Equal(22.5, ht["temp"]);
+    }
+
+    [Fact]
+    public void JsonObjectToHashtable_NullValueRetained()
+    {
+        var ht = JsonHelpers.JsonObjectToHashtable("""{"opt":null}""");
+        Assert.True(ht.ContainsKey("opt"));
+        Assert.Null(ht["opt"]);
+    }
+
+    [Fact]
     public void SerializeHashtable_FlatPrimitives()
     {
         var h = new Hashtable

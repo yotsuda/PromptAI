@@ -96,11 +96,11 @@ public class CompareAICmdlet : PSCmdlet
     private static ApiCallResult CallProvider(string provider, string userContent, string? systemPrompt, int maxTokens)
         => provider switch
         {
-            "Claude"   => InvokeClaudeCmdlet.Call(  userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null),
-            "GPT"      => InvokeGPTCmdlet.Call(     userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null),
+            "Claude"   => InvokeClaudeCmdlet.Call(  userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null, 10, null),
+            "GPT"      => InvokeGPTCmdlet.Call(     userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null, 10, null),
             "Gemini"   => InvokeGeminiCmdlet.Call(  userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null),
-            "Llama"    => InvokeLlamaCmdlet.Call(   "Groq", userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null),
-            "DeepSeek" => InvokeDeepSeekCmdlet.Call(userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null),
+            "Llama"    => InvokeLlamaCmdlet.Call(   "Groq", userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null, 10, null),
+            "DeepSeek" => InvokeDeepSeekCmdlet.Call(userContent, systemPrompt, null, maxTokens, null, null, null, null, null, false, null, null, 10, null),
             _          => throw new PSInvalidOperationException($"Unknown provider: {provider}"),
         };
 
